@@ -1,9 +1,15 @@
 import { app, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
+import path from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-// import { randomBytes } from 'node:crypto'
 import icon from '../../resources/icon.png?asset'
-// import { openDatabase, closeDatabase, getDbPath } from './db'
+
+// Pin the storage folder to a stable machine-friendly name. Electron would
+// otherwise derive it from productName, which is a display string that may
+// change — and moving a therapist's database after release means writing
+// migration code for it. This must run before anything calls
+// getPath('userData'), so it stays at module top level.
+app.setPath('userData', path.join(app.getPath('appData'), 'stimel-03'))
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -38,41 +44,6 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
-
-// ---------------------------------------------------------------------------
-// TEMPORARY — encryption smoke test.
-//
-// Confirms two things before any real data model is built:
-//   1. a database created with a key cannot be reopened with a different key
-//   2. the file on disk contains no readable plain text
-//
-// Check (1) prints PASS in the terminal. Check (2) is run manually:
-//   strings ~/Library/Application\ Support/*/stimel.db | grep PATIENT_NAME_MARKER
-// Empty output is the pass.
-//
-// Delete this function and its call site once both checks have passed.
-// ---------------------------------------------------------------------------
-// function encryptionSmokeTest(): void {
-//   const goodKey = randomBytes(32).toString('hex')
-
-//   const db = openDatabase(goodKey)
-//   db.$client.exec('CREATE TABLE IF NOT EXISTS probe (secret TEXT)')
-//   db.$client.prepare("INSERT INTO probe VALUES ('PATIENT_NAME_MARKER')").run()
-//   closeDatabase()
-
-//   console.log('db path:', getDbPath())
-
-//   const wrongKey = randomBytes(32).toString('hex')
-//   try {
-//     openDatabase(wrongKey)
-//     console.error('FAIL — database opened with the wrong key')
-//   } catch {
-//     console.log('PASS — wrong key rejected')
-//   } finally {
-//     closeDatabase()
-//   }
-// }
-// ---------------------------------------------------------------------------
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.motioninformatics.stimel03')
@@ -115,8 +86,6 @@ app.whenReady().then(() => {
   // Temporary placeholder handler. Replaced by the real channels
   // listed in Section 7 of the design document.
   ipcMain.handle('health:ping', () => 'pong')
-
-  // encryptionSmokeTest() // TEMPORARY — remove together with the function above
 
   createWindow()
 
