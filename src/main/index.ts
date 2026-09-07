@@ -1,7 +1,9 @@
-import { app, shell, BrowserWindow, ipcMain, session } from 'electron'
+import { app, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+// import { randomBytes } from 'node:crypto'
 import icon from '../../resources/icon.png?asset'
+// import { openDatabase, closeDatabase, getDbPath } from './db'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -37,11 +39,46 @@ function createWindow(): void {
   }
 }
 
+// ---------------------------------------------------------------------------
+// TEMPORARY — encryption smoke test.
+//
+// Confirms two things before any real data model is built:
+//   1. a database created with a key cannot be reopened with a different key
+//   2. the file on disk contains no readable plain text
+//
+// Check (1) prints PASS in the terminal. Check (2) is run manually:
+//   strings ~/Library/Application\ Support/*/stimel.db | grep PATIENT_NAME_MARKER
+// Empty output is the pass.
+//
+// Delete this function and its call site once both checks have passed.
+// ---------------------------------------------------------------------------
+// function encryptionSmokeTest(): void {
+//   const goodKey = randomBytes(32).toString('hex')
+
+//   const db = openDatabase(goodKey)
+//   db.$client.exec('CREATE TABLE IF NOT EXISTS probe (secret TEXT)')
+//   db.$client.prepare("INSERT INTO probe VALUES ('PATIENT_NAME_MARKER')").run()
+//   closeDatabase()
+
+//   console.log('db path:', getDbPath())
+
+//   const wrongKey = randomBytes(32).toString('hex')
+//   try {
+//     openDatabase(wrongKey)
+//     console.error('FAIL — database opened with the wrong key')
+//   } catch {
+//     console.log('PASS — wrong key rejected')
+//   } finally {
+//     closeDatabase()
+//   }
+// }
+// ---------------------------------------------------------------------------
+
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.motioninformatics.stimel03')
 
-  // Content Security Policy. Skipped in dev because Vite's hot-reload
-  // websocket is blocked by it.
+  // Content Security Policy. Skipped in development because Vite's
+  // hot-reload websocket is blocked by it.
   if (!is.dev) {
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       callback({
@@ -64,7 +101,8 @@ app.whenReady().then(() => {
   app.on('web-contents-created', (_, contents) => {
     contents.on('will-navigate', (event, url) => {
       const isDevServer =
-        is.dev && process.env['ELECTRON_RENDERER_URL'] &&
+        is.dev &&
+        process.env['ELECTRON_RENDERER_URL'] &&
         url.startsWith(process.env['ELECTRON_RENDERER_URL'])
       if (!isDevServer) event.preventDefault()
     })
@@ -74,8 +112,11 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // Temporary. Remove once real handlers exist.
+  // Temporary placeholder handler. Replaced by the real channels
+  // listed in Section 7 of the design document.
   ipcMain.handle('health:ping', () => 'pong')
+
+  // encryptionSmokeTest() // TEMPORARY — remove together with the function above
 
   createWindow()
 
