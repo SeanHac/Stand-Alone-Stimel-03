@@ -57,19 +57,12 @@ CREATE TABLE `users` (
 	`last_name` text NOT NULL,
 	`medical_license_number` text NOT NULL,
 	`username` text NOT NULL,
+	`email` text NOT NULL,
 	`state` text NOT NULL,
 	`city` text NOT NULL,
 	`full_address` text NOT NULL,
-	`password_hash` text NOT NULL,
-	`password_salt` blob NOT NULL,
-	`recovery_key_hash` text NOT NULL,
-	`recovery_key_salt` blob NOT NULL,
-	`dek_wrapped_by_password` blob NOT NULL,
-	`dek_wrapped_by_recovery` blob NOT NULL,
 	`disclaimer_accepted_at` integer NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL,
 	CONSTRAINT "users_single_row" CHECK("users"."id" = 1)
 );
---> statement-breakpoint
-CREATE UNIQUE INDEX `users_username_unique` ON `users` (`username`);

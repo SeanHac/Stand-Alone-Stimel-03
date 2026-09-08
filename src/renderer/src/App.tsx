@@ -1,6 +1,7 @@
-import { MantineProvider } from '@mantine/core'
+import { useEffect, useState } from 'react'
+import { MantineProvider, Center, Loader } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
@@ -18,6 +19,50 @@ import PatientsPage from './pages/PatientsPage'
 import SessionsPage from './pages/SessionsPage'
 import ProgramsPage from './pages/ProgramsPage'
 import ReportsPage from './pages/ReportsPage'
+
+/**
+ * Decides the landing screen on launch, and returns to login when the
+ * twelve-hour session expires.
+ */
+function Bootstrap(): React.JSX.Element {
+  const navigate = useNavigate()
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+
+    window.api.auth
+      .startupState()
+      .then((state) => {
+        if (cancelled) return
+        navigate(state === 'first-launch' ? '/onboarding/create-user' : '/login', {
+          replace: true
+        })
+      })
+      .finally(() => {
+        if (!cancelled) setReady(true)
+      })
+
+    const unsubscribe = window.api.auth.onSessionExpired(() => {
+      navigate('/login', { replace: true })
+    })
+
+    return () => {
+      cancelled = true
+      unsubscribe()
+    }
+  }, [navigate])
+
+  if (!ready) {
+    return (
+      <Center mih="100vh">
+        <Loader />
+      </Center>
+    )
+  }
+
+  return <Navigate to="/login" replace />
+}
 
 function App(): React.JSX.Element {
   return (
@@ -46,12 +91,7 @@ function App(): React.JSX.Element {
             <Route path="/reports" element={<ReportsPage />} />
           </Route>
 
-          {/*
-            Temporary landing rule. Once authentication exists this becomes
-            a check: no profile -> first launch, profile but no session ->
-            /login, active session -> /patients.
-          */}
-          <Route path="*" element={<Navigate to="/patients" replace />} />
+          <Route path="*" element={<Bootstrap />} />
         </Routes>
       </HashRouter>
     </MantineProvider>

@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, blob, check } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, integer, text, check } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 /**
@@ -8,37 +8,29 @@ import { sql } from 'drizzle-orm'
  * timestamps: a date of birth stored as a moment in time can shift by a
  * day across timezones, which is not acceptable in a clinical record.
  * createdAt and updatedAt are genuine moments and are stored as timestamps.
+ *
+ * Note on authentication: the password hash, recovery key hash and the two
+ * wrapped copies of the database key are NOT stored here. They live in
+ * auth.json outside the encrypted database, because they are required in
+ * order to decrypt it. See src/main/auth/vault.ts.
  */
 
 // ---------------------------------------------------------------------------
-// users — exactly one row
+// users — exactly one row. Profile only; no authentication material.
 // ---------------------------------------------------------------------------
 export const users = sqliteTable(
   'users',
   {
     id: integer('id').primaryKey(),
 
-    // Profile. All required at registration (design doc 6.2).
     firstName: text('first_name').notNull(),
     lastName: text('last_name').notNull(),
     medicalLicenseNumber: text('medical_license_number').notNull(),
-    username: text('username').notNull().unique(),
+    username: text('username').notNull(),
+    email: text('email').notNull(),
     state: text('state').notNull(),
     city: text('city').notNull(),
     fullAddress: text('full_address').notNull(),
-
-    // Authentication. The password itself is never stored.
-    passwordHash: text('password_hash').notNull(),
-    passwordSalt: blob('password_salt', { mode: 'buffer' }).notNull(),
-
-    // Recovery key. Only its hash is kept, so it can never be shown again.
-    recoveryKeyHash: text('recovery_key_hash').notNull(),
-    recoveryKeySalt: blob('recovery_key_salt', { mode: 'buffer' }).notNull(),
-
-    // The database key, wrapped twice. See design doc section 4.
-    // Password reset re-wraps these 32 bytes; the data is never re-encrypted.
-    dekWrappedByPassword: blob('dek_wrapped_by_password', { mode: 'buffer' }).notNull(),
-    dekWrappedByRecovery: blob('dek_wrapped_by_recovery', { mode: 'buffer' }).notNull(),
 
     disclaimerAcceptedAt: integer('disclaimer_accepted_at', { mode: 'timestamp' }).notNull(),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
@@ -140,7 +132,6 @@ export const sessions = sqliteTable('sessions', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull()
 })
 
-// Inferred row types, for use in repositories and services.
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type Patient = typeof patients.$inferSelect

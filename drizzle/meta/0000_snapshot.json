@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "3ef5a7ca-a09c-4609-8bd6-b68db02cb280",
+  "id": "7e83cf92-ac83-4e58-a911-e02ab6a0f461",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "patients": {
@@ -394,6 +394,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "state": {
           "name": "state",
           "type": "text",
@@ -411,48 +418,6 @@
         "full_address": {
           "name": "full_address",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "password_salt": {
-          "name": "password_salt",
-          "type": "blob",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "recovery_key_hash": {
-          "name": "recovery_key_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "recovery_key_salt": {
-          "name": "recovery_key_salt",
-          "type": "blob",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "dek_wrapped_by_password": {
-          "name": "dek_wrapped_by_password",
-          "type": "blob",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "dek_wrapped_by_recovery": {
-          "name": "dek_wrapped_by_recovery",
-          "type": "blob",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -479,15 +444,7 @@
           "autoincrement": false
         }
       },
-      "indexes": {
-        "users_username_unique": {
-          "name": "users_username_unique",
-          "columns": [
-            "username"
-          ],
-          "isUnique": true
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

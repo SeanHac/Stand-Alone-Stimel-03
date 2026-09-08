@@ -3,6 +3,7 @@ import { join } from 'path'
 import path from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { registerAuthHandlers } from './ipc/auth'
 
 // Pin the storage folder to a stable machine-friendly name. Electron would
 // otherwise derive it from productName, which is a display string that may
@@ -83,9 +84,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // Temporary placeholder handler. Replaced by the real channels
-  // listed in Section 7 of the design document.
-  ipcMain.handle('health:ping', () => 'pong')
+  registerAuthHandlers()
 
   createWindow()
 
