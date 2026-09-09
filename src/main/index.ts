@@ -2,9 +2,8 @@ import { app, BrowserWindow, ipcMain, session } from 'electron'
 import { join } from 'path'
 import path from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
 import { registerAuthHandlers } from './ipc/auth'
-
+import { registerPatientHandlers } from './ipc/patients'
 // Pin the storage folder to a stable machine-friendly name. Electron would
 // otherwise derive it from productName, which is a display string that may
 // change — and moving a therapist's database after release means writing
@@ -20,7 +19,6 @@ function createWindow(): void {
     minHeight: 700,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -85,7 +83,7 @@ app.whenReady().then(() => {
   })
 
   registerAuthHandlers()
-
+  registerPatientHandlers()
   createWindow()
 
   app.on('activate', function () {

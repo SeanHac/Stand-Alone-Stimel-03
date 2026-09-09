@@ -7,6 +7,17 @@ import { z } from 'zod'
  * main-process check is the authoritative one.
  */
 
+/**
+ * Password rules. Defined once so the registration form and the recovery
+ * form cannot drift apart: a password accepted at sign-up must still be
+ * accepted when it is reset.
+ */
+export const passwordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
+  .regex(/[0-9]/, 'Password must contain at least one number')
+
 export const registrationSchema = z
   .object({
     firstName: z.string().trim().min(1, 'First name is required'),
@@ -14,7 +25,7 @@ export const registrationSchema = z
     medicalLicenseNumber: z.string().trim().min(1, 'Medical license number is required'),
     username: z.string().trim().min(3, 'Username must be at least 3 characters'),
     email: z.string().trim().email('Enter a valid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: passwordSchema,
     confirmPassword: z.string(),
     state: z.string().trim().min(1, 'State is required'),
     city: z.string().trim().min(1, 'City is required'),
@@ -34,6 +45,20 @@ export const loginSchema = z.object({
 })
 
 export type LoginInput = z.infer<typeof loginSchema>
+
+/** Account recovery: the key from onboarding, plus a replacement password. */
+export const recoverySchema = z
+  .object({
+    recoveryKey: z.string().trim().min(1, 'Recovery key is required'),
+    newPassword: passwordSchema,
+    confirmPassword: z.string()
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword']
+  })
+
+export type RecoveryInput = z.infer<typeof recoverySchema>
 
 export type StartupState = 'first-launch' | 'login'
 

@@ -14,7 +14,7 @@ import {
   TextInput,
   Title
 } from '@mantine/core'
-import { registrationSchema, type RegistrationInput } from '../../../../shared/auth'
+import { registrationSchema, type RegistrationInput } from '@shared/auth'
 
 /**
  * Design document section 6.2. Every field here is required — the only

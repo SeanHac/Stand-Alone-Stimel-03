@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { RegistrationInput, SessionStatus, StartupState } from '../shared/auth'
-
+import type { PatientInput, PatientRecord } from '@shared/patient'
 /**
  * Every call the interface is permitted to make. Nothing outside this
  * object is reachable from the renderer.
@@ -36,7 +36,25 @@ const api = {
       ipcRenderer.on('auth:sessionExpired', listener)
       return () => ipcRenderer.removeListener('auth:sessionExpired', listener)
     }
+  },
+  
+  patients: {
+    list: (): Promise<PatientRecord[]> => ipcRenderer.invoke('patients:list'),
+
+    listActive: (): Promise<PatientRecord[]> => ipcRenderer.invoke('patients:listActive'),
+
+    get: (id: number): Promise<PatientRecord | null> =>
+      ipcRenderer.invoke('patients:get', id),
+
+    create: (input: PatientInput): Promise<PatientRecord> =>
+      ipcRenderer.invoke('patients:create', input),
+
+    update: (id: number, input: PatientInput): Promise<PatientRecord> =>
+      ipcRenderer.invoke('patients:update', id, input),
+
+    remove: (id: number): Promise<{ ok: true }> => ipcRenderer.invoke('patients:delete', id)
   }
+
 }
 
 contextBridge.exposeInMainWorld('api', api)

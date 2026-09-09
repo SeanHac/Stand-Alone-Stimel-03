@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { AppShell, NavLink, Title, Group, Button, Stack } from '@mantine/core'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import SessionBanner from '../components/SessionBanner'
 
 const NAV_ITEMS = [
   { label: 'Patients', path: '/patients' },
@@ -12,13 +14,29 @@ export default function AppLayout(): React.JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
 
-  const handleLogout = (): void => {
-    // Real logout arrives with authentication: auth:logout, then /login.
-    navigate('/login')
+  useEffect(() => {
+    // The session decides what is reachable, not the URL. Without this a
+    // stale hash or a direct navigation would show patient data with no
+    // active session behind it.
+    window.api.auth.sessionStatus().then((status) => {
+      if (!status.active) navigate('/welcome', { replace: true })
+    })
+
+    // React to the twelve hours elapsing while the user sits on a screen.
+    // This listener belongs here rather than on a route component, because
+    // this layout is mounted for every screen inside the application.
+    return window.api.auth.onSessionExpired(() => {
+      navigate('/welcome', { replace: true })
+    })
+  }, [navigate])
+
+  const handleLogout = async (): Promise<void> => {
+    await window.api.auth.logout()
+    navigate('/welcome', { replace: true })
   }
 
   return (
-    <AppShell header={{ height: 56 }} navbar={{ width: 220, breakpoint: 'sm' }} padding="md">
+    <AppShell header={{ height: 56 }}   navbar={{ width: 220, breakpoint: 'xs', collapsed: { mobile: false } }} padding="md">
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Title order={4}>Stimel-03</Title>
@@ -42,10 +60,8 @@ export default function AppLayout(): React.JSX.Element {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        {/*
-          The session expiry banner belongs here, above the content and
-          visible on every screen. See design document section 6.12.
-        */}
+        {/* Design document 6.12. Visible on every screen, cannot be dismissed. */}
+        <SessionBanner />
         <Outlet />
       </AppShell.Main>
     </AppShell>

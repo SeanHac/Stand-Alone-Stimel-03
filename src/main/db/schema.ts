@@ -2,7 +2,7 @@ import { sqliteTable, integer, text, check } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 /**
- * Stimel 0-3 schema. See Application Design Document section 3.
+ * Stimel-03 schema. See Application Design Document section 3.
  *
  * Date columns hold calendar dates as 'YYYY-MM-DD' text. They are not
  * timestamps: a date of birth stored as a moment in time can shift by a

@@ -10,7 +10,9 @@ import '@mantine/notifications/styles.css'
 import AuthLayout from './layouts/AuthLayout'
 import AppLayout from './layouts/AppLayout'
 
+import WelcomePage from './pages/WelcomePage'
 import LoginPage from './pages/LoginPage'
+import RecoveryPage from './pages/RecoveryPage'
 import CreateUserPage from './pages/onboarding/CreateUserPage'
 import RecoveryKeyPage from './pages/onboarding/RecoveryKeyPage'
 import RestorePage from './pages/onboarding/RestorePage'
@@ -23,6 +25,9 @@ import ReportsPage from './pages/ReportsPage'
 /**
  * Decides the landing screen on launch, and returns to login when the
  * twelve-hour session expires.
+ *
+ * No account on this computer  -> sign-up.
+ * An account exists            -> welcome, offering sign in or recovery.
  */
 function Bootstrap(): React.JSX.Element {
   const navigate = useNavigate()
@@ -35,7 +40,7 @@ function Bootstrap(): React.JSX.Element {
       .startupState()
       .then((state) => {
         if (cancelled) return
-        navigate(state === 'first-launch' ? '/onboarding/create-user' : '/login', {
+        navigate(state === 'first-launch' ? '/onboarding/create-user' : '/welcome', {
           replace: true
         })
       })
@@ -44,7 +49,7 @@ function Bootstrap(): React.JSX.Element {
       })
 
     const unsubscribe = window.api.auth.onSessionExpired(() => {
-      navigate('/login', { replace: true })
+      navigate('/welcome', { replace: true })
     })
 
     return () => {
@@ -61,7 +66,7 @@ function Bootstrap(): React.JSX.Element {
     )
   }
 
-  return <Navigate to="/login" replace />
+  return <Navigate to="/welcome" replace />
 }
 
 function App(): React.JSX.Element {
@@ -77,7 +82,9 @@ function App(): React.JSX.Element {
         <Routes>
           {/* Authentication and onboarding — no sidebar */}
           <Route element={<AuthLayout />}>
+            <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/recovery" element={<RecoveryPage />} />
             <Route path="/onboarding/create-user" element={<CreateUserPage />} />
             <Route path="/onboarding/recovery-key" element={<RecoveryKeyPage />} />
             <Route path="/onboarding/restore" element={<RestorePage />} />

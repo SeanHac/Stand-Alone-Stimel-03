@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Alert,
   Button,
+  Group,
   PasswordInput,
   Stack,
   Text,
@@ -14,14 +15,18 @@ import {
  * Design document section 6.5.
  *
  * No account creation, no user switching, no forgot-password link, no
- * email login. One therapist, one machine.
+ * email login. Recovery is reached from the welcome screen instead.
  */
 export default function LoginPage(): React.JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  // Set after a successful password reset.
+  const notice = (location.state as { notice?: string } | null)?.notice
 
   const handleSubmit = async (): Promise<void> => {
     setError(null)
@@ -41,9 +46,15 @@ export default function LoginPage(): React.JSX.Element {
       <div>
         <Title order={3}>Sign in</Title>
         <Text c="dimmed" size="sm">
-          Stimel 0-3 treatment documentation
+          Stimel-03 treatment documentation
         </Text>
       </div>
+
+      {notice && (
+        <Alert color="green" variant="light">
+          {notice}
+        </Alert>
+      )}
 
       {error && (
         <Alert color="red" variant="light">
@@ -66,9 +77,14 @@ export default function LoginPage(): React.JSX.Element {
         onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
       />
 
-      <Button onClick={handleSubmit} loading={busy} fullWidth mt="xs">
-        Sign in
-      </Button>
+      <Group justify="space-between" mt="xs">
+        <Button variant="subtle" onClick={() => navigate('/welcome')}>
+          Back
+        </Button>
+        <Button onClick={handleSubmit} loading={busy}>
+          Sign in
+        </Button>
+      </Group>
     </Stack>
   )
 }
