@@ -10,21 +10,18 @@ import {
   TextInput,
   Title
 } from '@mantine/core'
-import { recoverySchema } from '@shared/auth'
+import { validateRecovery, type RecoveryInput } from '@shared/auth'
 
 /**
  * Account recovery. See Application Design Document section 4.2.
  *
  * The recovery key unwraps the database key, which is then re-wrapped under
- * the new password. The database itself is never re-encrypted and no data
- * is touched — only the wrapped key is rewritten.
- *
- * The recovery key resets a password. It is not accepted as a credential:
- * a successful reset returns to the login screen.
+ * the new password. The database itself is never re-encrypted — only the
+ * wrapped key is rewritten, so no patient data is touched.
  */
 export default function RecoveryPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const [values, setValues] = useState({
+  const [values, setValues] = useState<RecoveryInput>({
     recoveryKey: '',
     newPassword: '',
     confirmPassword: ''
@@ -33,7 +30,7 @@ export default function RecoveryPage(): React.JSX.Element {
   const [formError, setFormError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const set = (field: keyof typeof values, value: string): void => {
+  const set = (field: keyof RecoveryInput, value: string): void => {
     setValues((v) => ({ ...v, [field]: value }))
     setErrors((e) => ({ ...e, [field]: '' }))
   }
@@ -41,20 +38,15 @@ export default function RecoveryPage(): React.JSX.Element {
   const handleSubmit = async (): Promise<void> => {
     setFormError(null)
 
-    const parsed = recoverySchema.safeParse(values)
-    if (!parsed.success) {
-      const fieldErrors: Record<string, string> = {}
-      for (const issue of parsed.error.issues) {
-        const key = String(issue.path[0])
-        if (!fieldErrors[key]) fieldErrors[key] = issue.message
-      }
+    const fieldErrors = validateRecovery(values)
+    if (Object.keys(fieldErrors).length > 0) {
       setErrors(fieldErrors)
       return
     }
 
     setBusy(true)
     try {
-      await window.api.auth.resetPassword(parsed.data.recoveryKey, parsed.data.newPassword)
+      await window.api.auth.resetPassword(values.recoveryKey, values.newPassword)
       navigate('/login', {
         replace: true,
         state: { notice: 'Your password has been reset. Sign in with the new password.' }

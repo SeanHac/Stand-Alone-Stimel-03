@@ -1,7 +1,7 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import * as authService from '../auth/service'
 import { getStatus, setExpiryHandler } from '../auth/session'
-import { loginSchema, registrationSchema } from '../../shared/auth'
+import { loginSchema, registrationSchema } from '../validation/auth.schema'
 
 /**
  * Authentication channels. Handlers stay thin: validate, delegate, return.

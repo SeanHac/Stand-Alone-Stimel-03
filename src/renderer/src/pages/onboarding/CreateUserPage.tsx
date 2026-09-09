@@ -14,14 +14,17 @@ import {
   TextInput,
   Title
 } from '@mantine/core'
-import { registrationSchema, type RegistrationInput } from '@shared/auth'
+import { validateRegistration, type RegistrationInput } from '@shared/auth'
 
 /**
  * Design document section 6.2. Every field here is required — the only
  * screen in the application where that is true.
+ *
+ * Validation here is for field feedback only. The main process re-checks
+ * everything with Zod before anything is written.
  */
 
-const EMPTY = {
+const EMPTY: RegistrationInput = {
   firstName: '',
   lastName: '',
   medicalLicenseNumber: '',
@@ -37,13 +40,13 @@ const EMPTY = {
 
 export default function CreateUserPage(): React.JSX.Element {
   const navigate = useNavigate()
-  const [values, setValues] = useState<typeof EMPTY>(EMPTY)
+  const [values, setValues] = useState<RegistrationInput>(EMPTY)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [disclaimerOpen, setDisclaimerOpen] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const set = (field: keyof typeof EMPTY, value: string | boolean): void => {
+  const set = (field: keyof RegistrationInput, value: string | boolean): void => {
     setValues((v) => ({ ...v, [field]: value }))
     setErrors((e) => ({ ...e, [field]: '' }))
   }
@@ -51,20 +54,15 @@ export default function CreateUserPage(): React.JSX.Element {
   const handleSubmit = async (): Promise<void> => {
     setFormError(null)
 
-    const parsed = registrationSchema.safeParse(values)
-    if (!parsed.success) {
-      const fieldErrors: Record<string, string> = {}
-      for (const issue of parsed.error.issues) {
-        const key = String(issue.path[0])
-        if (!fieldErrors[key]) fieldErrors[key] = issue.message
-      }
+    const fieldErrors = validateRegistration(values)
+    if (Object.keys(fieldErrors).length > 0) {
       setErrors(fieldErrors)
       return
     }
 
     setBusy(true)
     try {
-      const { recoveryKey } = await window.api.auth.createUser(parsed.data as RegistrationInput)
+      const { recoveryKey } = await window.api.auth.createUser(values)
       // Carried in navigation state, never persisted. It is shown once.
       navigate('/onboarding/recovery-key', { replace: true, state: { recoveryKey } })
     } catch (err) {
@@ -129,6 +127,7 @@ export default function CreateUserPage(): React.JSX.Element {
       <SimpleGrid cols={2} spacing="sm">
         <PasswordInput
           label="Password"
+          description="At least 8 characters, including a letter and a number"
           value={values.password}
           error={errors.password}
           onChange={(e) => set('password', e.currentTarget.value)}

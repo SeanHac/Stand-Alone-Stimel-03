@@ -1,64 +1,38 @@
-import { z } from 'zod'
-
 /**
- * Validation shared by both processes. The renderer uses these for form
- * feedback; the main process re-validates with the same schemas before
- * anything is written. Renderer validation is convenience — the
- * main-process check is the authoritative one.
+ * Authentication types and helpers.
+ *
+ * This file must import no validation library. It is loaded by the
+ * renderer, whose Content Security Policy forbids eval — and Zod uses
+ * new Function() internally, so importing it here breaks every screen that
+ * pulls this module in, including the session banner on the app layout.
+ *
+ * The Zod schemas live in src/main/validation/auth.schema.ts.
  */
 
-/**
- * Password rules. Defined once so the registration form and the recovery
- * form cannot drift apart: a password accepted at sign-up must still be
- * accepted when it is reset.
- */
-export const passwordSchema = z
-  .string()
-  .min(8, 'Password must be at least 8 characters')
-  .regex(/[a-zA-Z]/, 'Password must contain at least one letter')
-  .regex(/[0-9]/, 'Password must contain at least one number')
+export interface RegistrationInput {
+  firstName: string
+  lastName: string
+  medicalLicenseNumber: string
+  username: string
+  email: string
+  password: string
+  confirmPassword: string
+  state: string
+  city: string
+  fullAddress: string
+  disclaimerAccepted: boolean
+}
 
-export const registrationSchema = z
-  .object({
-    firstName: z.string().trim().min(1, 'First name is required'),
-    lastName: z.string().trim().min(1, 'Last name is required'),
-    medicalLicenseNumber: z.string().trim().min(1, 'Medical license number is required'),
-    username: z.string().trim().min(3, 'Username must be at least 3 characters'),
-    email: z.string().trim().email('Enter a valid email address'),
-    password: passwordSchema,
-    confirmPassword: z.string(),
-    state: z.string().trim().min(1, 'State is required'),
-    city: z.string().trim().min(1, 'City is required'),
-    fullAddress: z.string().trim().min(1, 'Full address is required'),
-    disclaimerAccepted: z.literal(true)
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword']
-  })
+export interface LoginInput {
+  username: string
+  password: string
+}
 
-export type RegistrationInput = z.infer<typeof registrationSchema>
-
-export const loginSchema = z.object({
-  username: z.string().trim().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required')
-})
-
-export type LoginInput = z.infer<typeof loginSchema>
-
-/** Account recovery: the key from onboarding, plus a replacement password. */
-export const recoverySchema = z
-  .object({
-    recoveryKey: z.string().trim().min(1, 'Recovery key is required'),
-    newPassword: passwordSchema,
-    confirmPassword: z.string()
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword']
-  })
-
-export type RecoveryInput = z.infer<typeof recoverySchema>
+export interface RecoveryInput {
+  recoveryKey: string
+  newPassword: string
+  confirmPassword: string
+}
 
 export type StartupState = 'first-launch' | 'login'
 
@@ -74,4 +48,75 @@ export function formatRemaining(ms: number): string {
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = totalSeconds % 60
   return `${minutes}:${String(seconds).padStart(2, '0')}`
+}
+
+/**
+ * Password rules, hand-written so the renderer can show field errors
+ * without loading a validation library. The main process enforces the same
+ * rules with Zod; this copy is for feedback only.
+ */
+export function passwordProblem(password: string): string | null {
+  if (password.length < 8) return 'Password must be at least 8 characters'
+  if (!/[a-zA-Z]/.test(password)) return 'Password must contain at least one letter'
+  if (!/[0-9]/.test(password)) return 'Password must contain at least one number'
+  return null
+}
+
+export function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
+}
+
+/** Renderer-side check for the registration form. Returns field errors. */
+export function validateRegistration(values: RegistrationInput): Record<string, string> {
+  const errors: Record<string, string> = {}
+
+  const required: [keyof RegistrationInput, string][] = [
+    ['firstName', 'First name is required'],
+    ['lastName', 'Last name is required'],
+    ['medicalLicenseNumber', 'Medical license number is required'],
+    ['state', 'State is required'],
+    ['city', 'City is required'],
+    ['fullAddress', 'Full address is required']
+  ]
+
+  for (const [field, message] of required) {
+    if (!String(values[field] ?? '').trim()) errors[field] = message
+  }
+
+  if (values.username.trim().length < 3) {
+    errors.username = 'Username must be at least 3 characters'
+  }
+
+  if (!isValidEmail(values.email)) {
+    errors.email = 'Enter a valid email address'
+  }
+
+  const passwordError = passwordProblem(values.password)
+  if (passwordError) errors.password = passwordError
+
+  if (values.password !== values.confirmPassword) {
+    errors.confirmPassword = 'Passwords do not match'
+  }
+
+  if (!values.disclaimerAccepted) {
+    errors.disclaimerAccepted = 'You must accept the disclaimer to continue'
+  }
+
+  return errors
+}
+
+/** Renderer-side check for the recovery form. */
+export function validateRecovery(values: RecoveryInput): Record<string, string> {
+  const errors: Record<string, string> = {}
+
+  if (!values.recoveryKey.trim()) errors.recoveryKey = 'Recovery key is required'
+
+  const passwordError = passwordProblem(values.newPassword)
+  if (passwordError) errors.newPassword = passwordError
+
+  if (values.newPassword !== values.confirmPassword) {
+    errors.confirmPassword = 'Passwords do not match'
+  }
+
+  return errors
 }

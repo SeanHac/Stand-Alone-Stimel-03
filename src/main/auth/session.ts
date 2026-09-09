@@ -5,10 +5,9 @@
  * an idle timer: activity does not extend it. The countdown is owned here,
  * in the main process, so that reloading the window cannot restart it.
  */
-const SESSION_MS = 2 * 60 * 1000
-const WARNING_MS = 1 * 60 * 1000
-// const SESSION_MS = 12 * 60 * 60 * 1000
-// const WARNING_MS = 10 * 60 * 1000
+
+const SESSION_MS = 12 * 60 * 60 * 1000
+const WARNING_MS = 10 * 60 * 1000
 
 interface ActiveSession {
   expiresAt: number

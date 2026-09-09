@@ -12,7 +12,8 @@ import {
 } from './crypto'
 import { readVault, vaultExists, writeVault, type Vault } from './vault'
 import { startSession, endSession } from './session'
-import { registrationSchema, type RegistrationInput, type StartupState } from '../../shared/auth'
+import type { RegistrationInput, StartupState } from '@shared/auth'
+import { registrationSchema, passwordSchema } from '../validation/auth.schema'
 
 /**
  * Authentication. See Application Design Document sections 4 and 6.2–6.5.
@@ -131,9 +132,7 @@ export function logout(): void {
  * recovery secret and re-wrapped under the new password.
  */
 export function resetPasswordWithRecoveryKey(recoveryKey: string, newPassword: string): void {
-  if (newPassword.length < 8) {
-    throw new Error('Password must be at least 8 characters')
-  }
+  passwordSchema.parse(newPassword)
 
   const vault = readVault()
   const recoverySalt = Buffer.from(vault.recoverySalt, 'hex')

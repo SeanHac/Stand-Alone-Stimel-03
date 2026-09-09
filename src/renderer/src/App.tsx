@@ -6,6 +6,7 @@ import { HashRouter, Routes, Route, Navigate, useNavigate } from 'react-router-d
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
+import '@mantine/core/styles.layer.css'
 
 import AuthLayout from './layouts/AuthLayout'
 import AppLayout from './layouts/AppLayout'
