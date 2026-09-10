@@ -1,6 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type { RegistrationInput, SessionStatus, StartupState } from '../shared/auth'
 import type { PatientInput, PatientRecord } from '@shared/patient'
+import type { SessionFilters, SessionInput, SessionRecord } from '../shared/session'
+import type { Program } from '../shared/program'
+
 /**
  * Every call the interface is permitted to make. Nothing outside this
  * object is reachable from the renderer.
@@ -53,6 +56,26 @@ const api = {
       ipcRenderer.invoke('patients:update', id, input),
 
     remove: (id: number): Promise<{ ok: true }> => ipcRenderer.invoke('patients:delete', id)
+  },
+  
+  sessions: {
+    list: (filters?: SessionFilters): Promise<SessionRecord[]> =>
+      ipcRenderer.invoke('sessions:list', filters ?? {}),
+
+    get: (id: number): Promise<SessionRecord | null> =>
+      ipcRenderer.invoke('sessions:get', id),
+
+    create: (input: SessionInput): Promise<SessionRecord> =>
+      ipcRenderer.invoke('sessions:create', input),
+
+    update: (id: number, input: SessionInput): Promise<SessionRecord> =>
+      ipcRenderer.invoke('sessions:update', id, input),
+
+    remove: (id: number): Promise<{ ok: true }> => ipcRenderer.invoke('sessions:delete', id)
+  },
+
+  programs: {
+    list: (): Promise<Program[]> => ipcRenderer.invoke('programs:list')
   }
 
 }

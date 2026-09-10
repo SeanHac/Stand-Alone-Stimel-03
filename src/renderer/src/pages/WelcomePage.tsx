@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { Button, Stack, Text, Title } from '@mantine/core'
+import { Group, Stack, Text, Title } from '@mantine/core'
+import OptionCard from '../components/OptionCard'
+import { InfoIcon, KeyIcon, SignInIcon } from '../components/icons'
 
 /**
  * Shown on launch when an account already exists on this computer.
@@ -14,32 +16,34 @@ export default function WelcomePage(): React.JSX.Element {
 
   return (
     <Stack gap="lg">
-      <div>
-        <Title order={3}>Stimel-03</Title>
-        <Text c="dimmed" size="sm">
-          Treatment documentation
-        </Text>
-      </div>
-
-      <Stack gap="sm">
-        <Button size="md" onClick={() => navigate('/login')} fullWidth>
-          Sign in
-        </Button>
-
-        <Button
-          size="md"
-          variant="default"
-          onClick={() => navigate('/recovery')}
-          fullWidth
-        >
-          Account recovery
-        </Button>
+      <Stack gap={2} align="center">
+        <Title order={3} className="auth-heading">
+          Welcome to Motion Informatics
+        </Title>
+        <Text className="auth-subheading">Sign in to continue</Text>
       </Stack>
 
-      <Text c="dimmed" size="xs" ta="center">
-        Use account recovery if you have forgotten your password and still have the recovery
-        key you saved when this account was created.
-      </Text>
+      <Stack gap="sm">
+        <OptionCard
+          icon={<SignInIcon />}
+          title="Sign In"
+          description="Enter your username and password to continue."
+          onClick={() => navigate('/login')}
+        />
+        <OptionCard
+          icon={<KeyIcon />}
+          title="Account Recovery"
+          description="Reset a forgotten password using your recovery key."
+          onClick={() => navigate('/recovery')}
+        />
+      </Stack>
+
+      <Group gap={6} justify="center" wrap="nowrap" c="dimmed">
+        <InfoIcon />
+        <Text size="xs" c="dimmed">
+          Only one local user is supported on this device.
+        </Text>
+      </Group>
     </Stack>
   )
 }

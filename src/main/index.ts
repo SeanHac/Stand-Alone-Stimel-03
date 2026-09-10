@@ -4,6 +4,8 @@ import path from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerAuthHandlers } from './ipc/auth'
 import { registerPatientHandlers } from './ipc/patients'
+import { registerSessionHandlers } from './ipc/sessions'
+import { registerProgramHandlers } from './ipc/programs'
 // Pin the storage folder to a stable machine-friendly name. Electron would
 // otherwise derive it from productName, which is a display string that may
 // change — and moving a therapist's database after release means writing
@@ -13,6 +15,7 @@ app.setPath('userData', path.join(app.getPath('appData'), 'stimel-03'))
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
+    title: 'Stimel-03',
     width: 1200,
     height: 800,
     minWidth: 1024,
@@ -84,6 +87,10 @@ app.whenReady().then(() => {
 
   registerAuthHandlers()
   registerPatientHandlers()
+
+  registerSessionHandlers()
+  registerProgramHandlers()
+  
   createWindow()
 
   app.on('activate', function () {

@@ -1,0 +1,128 @@
+/*
+ * Global styles.
+ *
+ * Wrapped in a cascade layer so Mantine's own styles are not overridden by
+ * accident — an unlayered rule beats every layered one, which is how the
+ * modal ended up unstyled.
+ */
+/* @layer mantine, app; */
+@layer app {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background-color: var(--mantine-color-gray-0);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Authentication screens                                            */
+  /* ---------------------------------------------------------------- */
+
+  .auth-shell {
+    min-height: 100vh;
+    background-size: cover;
+    background-position: center left;
+    background-repeat: no-repeat;
+    background-color: #eef5fb;
+  }
+
+  .auth-logo {
+    height: 100px;
+    width: auto;
+  }
+
+  .auth-heading {
+    color: var(--mantine-color-brand-9);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .auth-subheading {
+    color: var(--mantine-color-gray-6);
+    font-size: var(--mantine-font-size-sm);
+  }
+
+  /* The panel used by the login form. Onboarding choices sit directly on
+     the background instead, so the two screens read differently. */
+  .auth-panel {
+    background-color: #ffffff;
+    border: 1px solid var(--mantine-color-gray-2);
+    box-shadow: 0 2px 12px rgba(15, 59, 84, 0.06);
+  }
+
+  /* ---------------------------------------------------------------- */
+  /* Option cards                                                      */
+  /* ---------------------------------------------------------------- */
+
+  .option-card {
+    display: block;
+    width: 100%;
+    padding: 20px;
+    background-color: #ffffff;
+    border: 1px solid var(--mantine-color-gray-2);
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(15, 59, 84, 0.06);
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  }
+  
+  .option-card:hover {
+    border-color: var(--mantine-color-brand-4);
+    box-shadow: 0 6px 18px rgba(15, 59, 84, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .option-card:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(15, 59, 84, 0.08);
+  }
+
+  .option-card:focus-visible {
+    outline: 2px solid var(--mantine-color-brand-5);
+    outline-offset: 2px;
+  }
+
+  .option-card__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: #e8f1fa;
+    color: var(--mantine-color-brand-7);
+  }
+
+  .option-card:hover .option-card__icon {
+    background-color: #dbe9f7;
+  }
+
+  .option-card__title {
+    font-size: var(--mantine-font-size-sm);
+    font-weight: 700;
+    color: var(--mantine-color-brand-9);
+    line-height: 1.35;
+  }
+
+  .option-card__description {
+    font-size: 12.5px;
+    color: var(--mantine-color-gray-6);
+    line-height: 1.45;
+  }
+
+  .option-card__chevron {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--mantine-color-gray-5);
+    transition: transform 140ms ease, color 140ms ease;
+  }
+
+  .option-card:hover .option-card__chevron {
+    color: var(--mantine-color-brand-6);
+    transform: translateX(2px);
+  }
+}
