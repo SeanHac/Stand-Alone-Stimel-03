@@ -2,7 +2,9 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { RegistrationInput, SessionStatus, StartupState } from '../shared/auth'
 import type { PatientInput, PatientRecord } from '@shared/patient'
 import type { SessionFilters, SessionInput, SessionRecord } from '../shared/session'
-import type { Program } from '../shared/program'
+import type { Program } from '@shared/program'
+import type { TrendPoint, TrendQuery } from '@shared/report'
+
 
 /**
  * Every call the interface is permitted to make. Nothing outside this
@@ -57,7 +59,7 @@ const api = {
 
     remove: (id: number): Promise<{ ok: true }> => ipcRenderer.invoke('patients:delete', id)
   },
-  
+
   sessions: {
     list: (filters?: SessionFilters): Promise<SessionRecord[]> =>
       ipcRenderer.invoke('sessions:list', filters ?? {}),
@@ -76,6 +78,17 @@ const api = {
 
   programs: {
     list: (): Promise<Program[]> => ipcRenderer.invoke('programs:list')
+  },
+
+  reports: {
+    trends: (query: TrendQuery): Promise<TrendPoint[]> =>
+      ipcRenderer.invoke('reports:trends', query),
+
+    exportPdf: (
+      html: string,
+      suggestedName: string
+    ): Promise<{ ok: boolean; filePath?: string }> =>
+      ipcRenderer.invoke('reports:exportPdf', html, suggestedName)
   }
 
 }

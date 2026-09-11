@@ -6,6 +6,7 @@ import { registerAuthHandlers } from './ipc/auth'
 import { registerPatientHandlers } from './ipc/patients'
 import { registerSessionHandlers } from './ipc/sessions'
 import { registerProgramHandlers } from './ipc/programs'
+import { registerReportHandlers } from './ipc/reports'
 // Pin the storage folder to a stable machine-friendly name. Electron would
 // otherwise derive it from productName, which is a display string that may
 // change — and moving a therapist's database after release means writing
@@ -87,9 +88,9 @@ app.whenReady().then(() => {
 
   registerAuthHandlers()
   registerPatientHandlers()
-
   registerSessionHandlers()
   registerProgramHandlers()
+  registerReportHandlers()
   
   createWindow()
 

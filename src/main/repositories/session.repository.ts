@@ -76,7 +76,7 @@ export const sessionRepository = {
 
     return getDatabase()
       .select({
-        id: sessions.id,
+        sessionId: sessions.id,
         sessionDate: sessions.sessionDate,
         painScore: sessions.painScore,
         generalFeeling: sessions.generalFeeling,
