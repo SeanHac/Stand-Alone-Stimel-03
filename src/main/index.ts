@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, session } from 'electron'
+import { app, BrowserWindow, session } from 'electron'
 import { join } from 'path'
 import path from 'node:path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -7,6 +7,8 @@ import { registerPatientHandlers } from './ipc/patients'
 import { registerSessionHandlers } from './ipc/sessions'
 import { registerProgramHandlers } from './ipc/programs'
 import { registerReportHandlers } from './ipc/reports'
+import { registerBackupHandlers } from './ipc/backup'
+
 // Pin the storage folder to a stable machine-friendly name. Electron would
 // otherwise derive it from productName, which is a display string that may
 // change — and moving a therapist's database after release means writing
@@ -91,7 +93,8 @@ app.whenReady().then(() => {
   registerSessionHandlers()
   registerProgramHandlers()
   registerReportHandlers()
-  
+  registerBackupHandlers()
+
   createWindow()
 
   app.on('activate', function () {

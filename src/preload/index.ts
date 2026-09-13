@@ -89,6 +89,22 @@ const api = {
       suggestedName: string
     ): Promise<{ ok: boolean; filePath?: string }> =>
       ipcRenderer.invoke('reports:exportPdf', html, suggestedName)
+  },
+
+    backup: {
+    create: (): Promise<{ ok: boolean; filePath?: string }> =>
+      ipcRenderer.invoke('backup:create'),
+
+    choose: (): Promise<{
+      ok: boolean
+      filePath?: string
+      createdAt?: string
+      appVersion?: string
+      hasExistingData?: boolean
+    }> => ipcRenderer.invoke('backup:choose'),
+
+    restore: (filePath: string): Promise<{ ok: true }> =>
+      ipcRenderer.invoke('backup:restore', filePath)
   }
 
 }

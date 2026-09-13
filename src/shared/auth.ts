@@ -42,6 +42,26 @@ export interface SessionStatus {
   warning: boolean
 }
 
+const NAME_PATTERN = /^[\p{L}][\p{L}\s'’-]*$/u
+
+export function nameProblem(value: string, label: string): string | null {
+  const trimmed = value.trim()
+  if (!trimmed) return `${label} is required`
+  if (!NAME_PATTERN.test(trimmed)) return `${label} may only contain letters`
+  return null
+}
+
+/** Letters, digits, dot, underscore and hyphen. No spaces. */
+export function usernameProblem(value: string): string | null {
+  const trimmed = value.trim()
+  if (trimmed.length < 3) return 'Username must be at least 3 characters'
+  if (!/^[\p{L}\p{N}._-]+$/u.test(trimmed)) {
+    return 'Username may only contain letters, numbers, dots, underscores and hyphens'
+  }
+  return null
+}
+
+
 /** Formats remaining session time for the warning banner. */
 export function formatRemaining(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000))
@@ -70,22 +90,28 @@ export function isValidEmail(value: string): boolean {
 export function validateRegistration(values: RegistrationInput): Record<string, string> {
   const errors: Record<string, string> = {}
 
-  const required: [keyof RegistrationInput, string][] = [
-    ['firstName', 'First name is required'],
-    ['lastName', 'Last name is required'],
-    ['medicalLicenseNumber', 'Medical license number is required'],
-    ['state', 'State is required'],
-    ['city', 'City is required'],
-    ['fullAddress', 'Full address is required']
+  const nameFields: [keyof RegistrationInput, string][] = [
+    ['firstName', 'First name'],
+    ['lastName', 'Last name'],
+    ['state', 'State'],
+    ['city', 'City']
   ]
 
-  for (const [field, message] of required) {
-    if (!String(values[field] ?? '').trim()) errors[field] = message
+  for (const [field, label] of nameFields) {
+    const problem = nameProblem(String(values[field] ?? ''), label)
+    if (problem) errors[field] = problem
   }
 
-  if (values.username.trim().length < 3) {
-    errors.username = 'Username must be at least 3 characters'
+  if (!values.medicalLicenseNumber.trim()) {
+    errors.medicalLicenseNumber = 'Medical license number is required'
   }
+
+  if (!values.fullAddress.trim()) {
+    errors.fullAddress = 'Full address is required'
+  }
+
+  const usernameError = usernameProblem(values.username)
+  if (usernameError) errors.username = usernameError
 
   if (!isValidEmail(values.email)) {
     errors.email = 'Enter a valid email address'

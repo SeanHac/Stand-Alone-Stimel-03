@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { AppShell, NavLink, Title, Group, Button, Stack } from '@mantine/core'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import SessionBanner from '../components/SessionBanner'
+import { notifications } from '@mantine/notifications'
 
 const NAV_ITEMS = [
   { label: 'Patients', path: '/patients' },
@@ -35,14 +36,37 @@ export default function AppLayout(): React.JSX.Element {
     navigate('/welcome', { replace: true })
   }
 
+  const handleBackup = async (): Promise<void> => {
+    try {
+      const result = await window.api.backup.create()
+      if (result.ok) {
+        notifications.show({
+          color: 'green',
+          title: 'Backup saved',
+          message: 'Keep this file somewhere safe. It contains all of your records.'
+        })
+      }
+    } catch (err) {
+      notifications.show({
+        color: 'red',
+        message: err instanceof Error ? err.message : 'Could not create the backup'
+      })
+    }
+  }
+
   return (
     <AppShell header={{ height: 56 }}   navbar={{ width: 220, breakpoint: 'xs', collapsed: { mobile: false } }} padding="md">
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between">
           <Title order={4}>Stimel-03</Title>
-          <Button variant="subtle" size="compact-sm" onClick={handleLogout}>
-            Log out
-          </Button>
+          <Group gap="xs">
+            <Button variant="subtle" size="compact-sm" onClick={handleBackup}>
+              Backup
+            </Button>
+            <Button variant="subtle" size="compact-sm" onClick={handleLogout}>
+              Log out
+            </Button>
+          </Group>
         </Group>
       </AppShell.Header>
 
