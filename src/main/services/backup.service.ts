@@ -1,7 +1,5 @@
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
-import path from 'node:path'
-import os from 'node:os'
 import { createHash } from 'node:crypto'
 import { app } from 'electron'
 import { closeDatabase, getDatabase, getDbPath } from '../db'
@@ -42,49 +40,47 @@ function sha256(buffer: Buffer): string {
 /**
  * Writes a backup to the chosen path.
  *
- * The database is copied through better-sqlite3's online backup rather than
- * by reading the file directly. A plain file copy would miss anything still
- * sitting in the write-ahead log, producing a backup that is quietly a few
- * writes behind — or unreadable.
+ * SQLite's online backup API cannot be used here: it refuses to copy an
+ * encrypted database into a fresh target, because the two have different
+ * cipher configurations. Instead the write-ahead log is checkpointed into
+ * the main database file and the file is copied byte for byte, which
+ * preserves the encryption exactly as it is on disk.
+ *
+ * The checkpoint is what makes the copy safe. In WAL mode recent writes
+ * live in stimel.db-wal, so copying stimel.db alone would silently produce
+ * a backup missing the most recent work.
  */
 export async function createBackup(targetPath: string): Promise<void> {
   if (!vaultExists()) throw new Error('There is no account on this computer to back up')
 
   const db = getDatabase()
 
-  const tempPath = path.join(
-    await fsp.mkdtemp(path.join(os.tmpdir(), 'stimel-backup-')),
-    'snapshot.db'
-  )
+  // TRUNCATE waits for readers to finish, writes everything into the main
+  // file, and empties the log. After this the database file is complete.
+  db.$client.pragma('wal_checkpoint(TRUNCATE)')
 
-  try {
-    await db.$client.backup(tempPath)
+  const dbBytes = await fsp.readFile(getDbPath())
+  const authBytes = await fsp.readFile(getVaultPath())
 
-    const dbBytes = await fsp.readFile(tempPath)
-    const authBytes = await fsp.readFile(getVaultPath())
-
-    const manifest: Manifest = {
-      version: FORMAT_VERSION,
-      createdAt: new Date().toISOString(),
-      appVersion: app.getVersion(),
-      authLength: authBytes.length,
-      dbLength: dbBytes.length,
-      dbSha256: sha256(dbBytes)
-    }
-
-    const manifestBytes = Buffer.from(JSON.stringify(manifest), 'utf8')
-    const header = Buffer.alloc(8)
-    header.writeUInt32BE(FORMAT_VERSION, 0)
-    header.writeUInt32BE(manifestBytes.length, 4)
-
-    await fsp.writeFile(
-      targetPath,
-      Buffer.concat([MAGIC, header, manifestBytes, authBytes, dbBytes]),
-      { mode: 0o600 }
-    )
-  } finally {
-    await fsp.rm(path.dirname(tempPath), { recursive: true, force: true })
+  const manifest: Manifest = {
+    version: FORMAT_VERSION,
+    createdAt: new Date().toISOString(),
+    appVersion: app.getVersion(),
+    authLength: authBytes.length,
+    dbLength: dbBytes.length,
+    dbSha256: sha256(dbBytes)
   }
+
+  const manifestBytes = Buffer.from(JSON.stringify(manifest), 'utf8')
+  const header = Buffer.alloc(8)
+  header.writeUInt32BE(FORMAT_VERSION, 0)
+  header.writeUInt32BE(manifestBytes.length, 4)
+
+  await fsp.writeFile(
+    targetPath,
+    Buffer.concat([MAGIC, header, manifestBytes, authBytes, dbBytes]),
+    { mode: 0o600 }
+  )
 }
 
 export interface BackupInfo {
@@ -111,7 +107,9 @@ async function readBackup(
   const manifestStart = MAGIC.length + 8
   const manifestEnd = manifestStart + manifestLength
 
-  const manifest = JSON.parse(file.subarray(manifestStart, manifestEnd).toString('utf8')) as Manifest
+  const manifest = JSON.parse(
+    file.subarray(manifestStart, manifestEnd).toString('utf8')
+  ) as Manifest
 
   if (manifest.version !== FORMAT_VERSION) {
     throw new Error('That backup was made by a different version of the application')
