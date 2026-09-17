@@ -32,7 +32,18 @@ export default function RecoveryPage(): React.JSX.Element {
 
   const set = (field: keyof RecoveryInput, value: string): void => {
     setValues((v) => ({ ...v, [field]: value }))
-    setErrors((e) => ({ ...e, [field]: '' }))
+    setFormError(null)
+
+    setErrors((e) => {
+      const next = { ...e, [field]: '' }
+      // The two password fields are validated against each other, so an
+      // edit to either clears the mismatch shown under the second.
+      if (field === 'newPassword' || field === 'confirmPassword') {
+        next.newPassword = ''
+        next.confirmPassword = ''
+      }
+      return next
+    })
   }
 
   const handleSubmit = async (): Promise<void> => {
@@ -46,13 +57,24 @@ export default function RecoveryPage(): React.JSX.Element {
 
     setBusy(true)
     try {
-      await window.api.auth.resetPassword(values.recoveryKey, values.newPassword)
+      const result = await window.api.auth.resetPassword(
+        values.recoveryKey,
+        values.newPassword
+      )
+
+      if (!result.ok) {
+        setFormError(result.message ?? 'That recovery key is not valid')
+        return
+      }
+
       navigate('/login', {
         replace: true,
-        state: { notice: 'Your password has been reset. Sign in with the new password.' }
+        state: {
+          notice: 'Your password has been reset. Sign in with the new password.'
+        }
       })
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'That recovery key is not valid')
+    } catch {
+      setFormError('Something went wrong. Please try again.')
     } finally {
       setBusy(false)
     }
@@ -60,12 +82,14 @@ export default function RecoveryPage(): React.JSX.Element {
 
   return (
     <Stack gap="md">
-      <div>
-        <Title order={3}>Account recovery</Title>
-        <Text c="dimmed" size="sm">
+      <Stack gap={2} align="center">
+        <Title order={3} className="auth-heading">
+          Account recovery
+        </Title>
+        <Text className="auth-subheading">
           Enter the recovery key you saved when this account was created.
         </Text>
-      </div>
+      </Stack>
 
       {formError && (
         <Alert color="red" variant="light">

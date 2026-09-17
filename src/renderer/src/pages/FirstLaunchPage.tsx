@@ -23,13 +23,13 @@ export default function FirstLaunchPage(): React.JSX.Element {
         <OptionCard
           icon={<UserPlusIcon />}
           title="Create New User"
-          description="Create a new local user profile to get started."
+          description="Create a new user profile to get started"
           onClick={() => navigate('/onboarding/create-user')}
         />
         <OptionCard
           icon={<CloudUploadIcon />}
           title="Restore from Backup"
-          description="Restore your existing profile and data from a backup file."
+          description="Restore a profile from a backup file"
           onClick={() => navigate('/onboarding/restore')}
         />
       </Stack>

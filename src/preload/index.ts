@@ -16,20 +16,25 @@ import type { TrendPoint, TrendQuery } from '@shared/report'
 const api = {
   ping: (): Promise<string> => ipcRenderer.invoke('health:ping'),
 
-  auth: {
+    auth: {
     startupState: (): Promise<StartupState> => ipcRenderer.invoke('auth:startupState'),
 
-    createUser: (input: RegistrationInput): Promise<{ recoveryKey: string }> =>
+    createUser: (
+      input: RegistrationInput
+    ): Promise<{ ok: boolean; recoveryKey?: string; message?: string }> =>
       ipcRenderer.invoke('auth:createUser', input),
 
-    login: (username: string, password: string): Promise<{ ok: true }> =>
+    login: (username: string, password: string): Promise<{ ok: boolean; message?: string }> =>
       ipcRenderer.invoke('auth:login', { username, password }),
 
     logout: (): Promise<{ ok: true }> => ipcRenderer.invoke('auth:logout'),
 
     sessionStatus: (): Promise<SessionStatus> => ipcRenderer.invoke('auth:sessionStatus'),
 
-    resetPassword: (recoveryKey: string, newPassword: string): Promise<{ ok: true }> =>
+    resetPassword: (
+      recoveryKey: string,
+      newPassword: string
+    ): Promise<{ ok: boolean; message?: string }> =>
       ipcRenderer.invoke('auth:resetPassword', recoveryKey, newPassword),
 
     profile: (): Promise<{ firstName: string; lastName: string; email: string } | null> =>
@@ -42,6 +47,7 @@ const api = {
       return () => ipcRenderer.removeListener('auth:sessionExpired', listener)
     }
   },
+
   
   patients: {
     list: (): Promise<PatientRecord[]> => ipcRenderer.invoke('patients:list'),

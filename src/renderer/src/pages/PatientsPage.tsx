@@ -1,125 +1,114 @@
-import { useCallback, useEffect, useState } from 'react'
-import {
-  Alert,
-  Badge,
-  Button,
-  Center,
-  Group,
-  Loader,
-  Stack,
-  Table,
-  Text,
-  Title
-} from '@mantine/core'
+import { useState } from 'react'
+import { Badge, Button, Group, Paper, Stack, Table, Text, Title } from '@mantine/core'
 import { formatDate, type PatientRecord } from '@shared/patient'
+import { useData } from '../data/DataContext'
 import PatientFormModal from '../components/PatientFormModal'
+import { InfoIcon, PlusIcon } from '../components/icons'
 
 /**
  * Design document section 6.6.
  *
- * A plain table of every patient, with no search or filter — that is
- * deliberate, not an omission. Inactive patients remain listed alongside
- * active ones. The patient id exists to distinguish identical names but is
- * not shown.
+ * Reads from the in-memory store rather than querying on mount, so the
+ * screen renders immediately when navigated to.
  */
-
 export default function PatientsPage(): React.JSX.Element {
-  const [patients, setPatients] = useState<PatientRecord[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { patients } = useData()
   const [modalOpen, setModalOpen] = useState(false)
   const [selected, setSelected] = useState<PatientRecord | null>(null)
 
-  const load = useCallback(async (): Promise<void> => {
-    try {
-      setError(null)
-      setPatients(await window.api.patients.list())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not load patients')
-    }
-  }, [])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  const openNew = (): void => {
-    setSelected(null)
-    setModalOpen(true)
-  }
-
-  const openExisting = (patient: PatientRecord): void => {
-    setSelected(patient)
-    setModalOpen(true)
-  }
-
   return (
     <Stack gap="md">
-      <Group justify="space-between">
-        <Title order={2}>Patients</Title>
-        <Button onClick={openNew}>Add new patient</Button>
+      <Group justify="space-between" align="flex-start">
+        <Stack gap={0}>
+          <Title order={2}>Patients</Title>
+          <Text className="page-subtitle">Manage all patients</Text>
+        </Stack>
+        <Button
+          leftSection={<PlusIcon />}
+          onClick={() => {
+            setSelected(null)
+            setModalOpen(true)
+          }}
+        >
+          Add New Patient
+        </Button>
       </Group>
 
-      {error && (
-        <Alert color="red" variant="light">
-          {error}
-        </Alert>
-      )}
-
-      {patients === null && !error && (
-        <Center py="xl">
-          <Loader />
-        </Center>
-      )}
-
-      {patients !== null && patients.length === 0 && (
-        <Text c="dimmed" py="xl" ta="center">
-          No patients yet. Add your first patient to get started.
-        </Text>
-      )}
-
-      {patients !== null && patients.length > 0 && (
-        <Table highlightOnHover striped withTableBorder>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>First name</Table.Th>
-              <Table.Th>Last name</Table.Th>
-              <Table.Th>Clinical diagnosis</Table.Th>
-              <Table.Th>Affected side</Table.Th>
-              <Table.Th>Start date</Table.Th>
-              <Table.Th>Status</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {patients.map((patient) => (
-              <Table.Tr
-                key={patient.id}
-                onClick={() => openExisting(patient)}
-                style={{ cursor: 'pointer' }}
-              >
-                <Table.Td>{patient.firstName ?? '—'}</Table.Td>
-                <Table.Td>{patient.lastName ?? '—'}</Table.Td>
-                <Table.Td>{patient.clinicalDiagnosis ?? '—'}</Table.Td>
-                <Table.Td>{patient.affectedSide ?? '—'}</Table.Td>
-                <Table.Td>{formatDate(patient.startDate)}</Table.Td>
-                <Table.Td>
-                  <Badge
-                    variant="light"
-                    color={patient.status === 'Active' ? 'green' : 'gray'}
+      {patients.length === 0 ? (
+        <Paper withBorder p="xl">
+          <Text c="dimmed" ta="center">
+            No patients yet. Add your first patient to get started.
+          </Text>
+        </Paper>
+      ) : (
+        <>
+          <Paper withBorder>
+            <Table highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>First Name</Table.Th>
+                  <Table.Th>Last Name</Table.Th>
+                  <Table.Th>Clinical Diagnosis</Table.Th>
+                  <Table.Th>Affected Side</Table.Th>
+                  <Table.Th>Start Date</Table.Th>
+                  <Table.Th w={110}>Status</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {patients.map((patient) => (
+                  <Table.Tr
+                    key={patient.id}
+                    onClick={() => {
+                      setSelected(patient)
+                      setModalOpen(true)
+                    }}
+                    style={{ cursor: 'pointer' }}
                   >
-                    {patient.status}
-                  </Badge>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+                    <Table.Td>{patient.firstName ?? '—'}</Table.Td>
+                    <Table.Td>{patient.lastName ?? '—'}</Table.Td>
+                    <Table.Td>{patient.clinicalDiagnosis ?? '—'}</Table.Td>
+                    <Table.Td>{patient.affectedSide ?? '—'}</Table.Td>
+                    <Table.Td>{formatDate(patient.startDate)}</Table.Td>
+                    <Table.Td>
+                      <Badge
+                        variant="light"
+                        radius="sm"
+                        color={patient.status === 'Active' ? 'green' : 'gray'}
+                      >
+                        {patient.status}
+                      </Badge>
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+
+            <Group
+              px="md"
+              py="sm"
+              style={{ borderTop: '1px solid var(--mantine-color-gray-2)' }}
+            >
+              <Text size="sm" c="dimmed">
+                Total Patients: {patients.length}
+              </Text>
+            </Group>
+          </Paper>
+
+          <Paper withBorder p="sm" bg="var(--mantine-color-gray-0)">
+            <Group gap={8} wrap="nowrap" c="dimmed">
+              <InfoIcon />
+              <Text size="sm" c="dimmed">
+                Select a patient row to view or edit patient details.
+              </Text>
+            </Group>
+          </Paper>
+        </>
       )}
 
       <PatientFormModal
         opened={modalOpen}
         patient={selected}
         onClose={() => setModalOpen(false)}
-        onSaved={load}
       />
     </Stack>
   )

@@ -18,7 +18,7 @@ export default function WelcomePage(): React.JSX.Element {
     <Stack gap="lg">
       <Stack gap={2} align="center">
         <Title order={3} className="auth-heading">
-          Welcome to Motion Informatics
+          Welcome to Stimel-03 application
         </Title>
         <Text className="auth-subheading">Sign in to continue</Text>
       </Stack>

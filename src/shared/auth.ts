@@ -93,7 +93,6 @@ export function validateRegistration(values: RegistrationInput): Record<string, 
   const nameFields: [keyof RegistrationInput, string][] = [
     ['firstName', 'First name'],
     ['lastName', 'Last name'],
-    ['state', 'State'],
     ['city', 'City']
   ]
 
@@ -104,6 +103,14 @@ export function validateRegistration(values: RegistrationInput): Record<string, 
 
   if (!values.medicalLicenseNumber.trim()) {
     errors.medicalLicenseNumber = 'Medical license number is required'
+  }
+
+  if (!values.state.trim()) {
+    errors.state = 'State is required'
+  }
+
+  if (!values.city.trim()) {
+    errors.city = 'City is required'
   }
 
   if (!values.fullAddress.trim()) {

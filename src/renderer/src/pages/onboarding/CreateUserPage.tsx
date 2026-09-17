@@ -62,11 +62,20 @@ export default function CreateUserPage(): React.JSX.Element {
 
     setBusy(true)
     try {
-      const { recoveryKey } = await window.api.auth.createUser(values)
+      const result = await window.api.auth.createUser(values)
+
+      if (!result.ok) {
+        setFormError(result.message ?? 'Could not create the account')
+        return
+      }
+
       // Carried in navigation state, never persisted. It is shown once.
-      navigate('/onboarding/recovery-key', { replace: true, state: { recoveryKey } })
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'Could not create the account')
+      navigate('/onboarding/recovery-key', {
+        replace: true,
+        state: { recoveryKey: result.recoveryKey }
+      })
+    } catch {
+      setFormError('Something went wrong. Please try again.')
     } finally {
       setBusy(false)
     }
@@ -132,8 +141,10 @@ export default function CreateUserPage(): React.JSX.Element {
           error={errors.password}
           onChange={(e) => set('password', e.currentTarget.value)}
         />
+        
         <PasswordInput
           label="Confirm password"
+          description="Re-enter your password to confirm"
           value={values.confirmPassword}
           error={errors.confirmPassword}
           onChange={(e) => set('confirmPassword', e.currentTarget.value)}
@@ -196,13 +207,26 @@ export default function CreateUserPage(): React.JSX.Element {
       <Modal
         opened={disclaimerOpen}
         onClose={() => setDisclaimerOpen(false)}
-        title="Disclaimer"
+        title="STIMEL-03 STANDALONE SOFTWARE DISCLAIMER"
         size="lg"
       >
         <Text size="sm">
-          Placeholder. The disclaimer text is supplied by the product owner — see design
-          document open question 9.3, which also asks whether its wording must be
-          version-tracked.
+          The Stimel-03 Standalone Software is provided as a data-entry, record-management, and reporting tool for use by the clinic or healthcare organization operating the software.
+          Ownership and Responsibility for Data
+          All patient, clinical, treatment, administrative, and other information entered into or stored within the software remains under the ownership and control of the clinic or healthcare organization using the software, subject to applicable law. Motion Informatics Ltd. does not claim ownership of such information.
+          The clinic is solely responsible for the accuracy, completeness, legality, confidentiality, security, retention, backup, and appropriate use of all information entered into or stored within the software.
+          Standalone Operation
+          The software operates as a standalone application. Information is entered manually and is stored and managed by the clinic. Unless separately agreed in writing, Motion Informatics Ltd. does not maintain, monitor, control, or independently back up the clinic's database.
+          No Warranty
+          The software is provided on an "as is" and "as available" basis. To the maximum extent permitted by applicable law, Motion Informatics Ltd. makes no warranties, express or implied, regarding the uninterrupted operation, availability, accuracy, reliability, performance, data retention, or fitness of the software for any particular purpose.
+          Loss or Corruption of Data
+          The clinic is responsible for maintaining appropriate and regular backups of its database and information.
+          To the maximum extent permitted by applicable law, Motion Informatics Ltd. shall not be responsible or liable for any loss, deletion, corruption, alteration, unauthorized access, inability to retrieve, or other compromise of data, whether resulting from hardware failure, software failure, user error, failure to perform backups, computer malfunction, operating-system failure, malware, cybersecurity incident, power failure, third-party software, or any other cause.
+          Limitation of Liability
+          To the maximum extent permitted by applicable law, Motion Informatics Ltd. shall not be liable for any direct or indirect loss, damage, business interruption, loss of records, loss of revenue, loss of opportunity, or consequential or incidental damages arising from the use of, inability to use, or reliance upon the software or information stored within it.
+          Clinical Responsibility
+          The software is a record-management and reporting tool and does not replace professional clinical judgment. The clinic and its authorized healthcare professionals remain solely responsible for all clinical decisions, treatment decisions, patient care, and interpretation of information recorded or generated through the software.
+          By using the Stimel-03 Standalone Software, the clinic acknowledges and accepts these conditions.
         </Text>
       </Modal>
     </Stack>

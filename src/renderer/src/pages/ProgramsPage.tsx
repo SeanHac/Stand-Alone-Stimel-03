@@ -1,17 +1,7 @@
-import { useEffect, useState } from 'react'
-import {
-  Alert,
-  Center,
-  Grid,
-  Group,
-  Loader,
-  Paper,
-  Stack,
-  Table,
-  Text,
-  Title
-} from '@mantine/core'
+import { useState } from 'react'
+import { Grid, Group, Paper, Stack, Table, Text, Title } from '@mantine/core'
 import type { Program } from '@shared/program'
+import { useData } from '../data/DataContext'
 
 /**
  * Design document section 6.10.
@@ -37,46 +27,29 @@ function DetailRow({ label, value }: { label: string; value: string }): React.JS
 }
 
 export default function ProgramsPage(): React.JSX.Element {
-  const [programs, setPrograms] = useState<Program[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { programs } = useData()
   const [selected, setSelected] = useState<Program | null>(null)
-
-  useEffect(() => {
-    window.api.programs
-      .list()
-      .then(setPrograms)
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : 'Could not load programs')
-      )
-  }, [])
 
   return (
     <Stack gap="md">
-      <Title order={2}>Programs</Title>
+      <Stack gap={0}>
+        <Title order={2}>Programs</Title>
+        <Text className="page-subtitle">
+          Reference programs for the Stimel 0-3 device
+        </Text>
+      </Stack>
 
-      {error && (
-        <Alert color="red" variant="light">
-          {error}
-        </Alert>
-      )}
-
-      {programs === null && !error && (
-        <Center py="xl">
-          <Loader />
-        </Center>
-      )}
-
-      {programs !== null && (
-        <Grid gutter="md">
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <Table highlightOnHover striped withTableBorder>
+      <Grid gutter="md">
+        <Grid.Col span={{ base: 12, md: 8 }}>
+          <Paper withBorder>
+            <Table highlightOnHover>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th w={50}>ID</Table.Th>
                   <Table.Th>Program name</Table.Th>
                   <Table.Th w={100}>Biofeedback</Table.Th>
                   <Table.Th w={110}>Duration</Table.Th>
-                  <Table.Th w={80}>Ratio</Table.Th>
+                  <Table.Th w={70}>Ratio</Table.Th>
                   <Table.Th w={90}>Packet</Table.Th>
                   <Table.Th w={80}>Dose</Table.Th>
                 </Table.Tr>
@@ -88,9 +61,7 @@ export default function ProgramsPage(): React.JSX.Element {
                     onClick={() => setSelected(program)}
                     style={{ cursor: 'pointer' }}
                     bg={
-                      selected?.id === program.id
-                        ? 'var(--mantine-color-brand-0)'
-                        : undefined
+                      selected?.id === program.id ? 'var(--mantine-color-brand-0)' : undefined
                     }
                   >
                     <Table.Td>{program.id}</Table.Td>
@@ -104,49 +75,49 @@ export default function ProgramsPage(): React.JSX.Element {
                 ))}
               </Table.Tbody>
             </Table>
-          </Grid.Col>
+          </Paper>
+        </Grid.Col>
 
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Paper withBorder p="md" h="100%">
-              {selected === null ? (
-                <Text c="dimmed" size="sm" ta="center" py="xl">
-                  Select a program to see its full parameters.
-                </Text>
-              ) : (
-                <Stack gap="sm">
-                  <div>
-                    <Title order={4}>{selected.name}</Title>
-                    <Text c="dimmed" size="sm">
-                      {selected.shortDescription}
-                    </Text>
-                  </div>
+        <Grid.Col span={{ base: 12, md: 4 }}>
+          <Paper withBorder p="md" h="100%">
+            {selected === null ? (
+              <Text c="dimmed" size="sm" ta="center" py="xl">
+                Select a program to see its full parameters.
+              </Text>
+            ) : (
+              <Stack gap="sm">
+                <div>
+                  <Title order={4}>{selected.name}</Title>
+                  <Text c="dimmed" size="sm">
+                    {selected.shortDescription}
+                  </Text>
+                </div>
 
-                  <Stack gap={8}>
-                    <DetailRow label="Program ID" value={String(selected.id)} />
-                    <DetailRow label="Biofeedback" value={dash(selected.biofeedback)} />
-                    <DetailRow
-                      label="Treatment duration"
-                      value={dash(selected.treatmentDuration)}
-                    />
-                    <DetailRow
-                      label="Pause / packet ratio"
-                      value={String(selected.pausePacketRatio)}
-                    />
-                    <DetailRow label="Packet duration" value={selected.packetDuration} />
-                    <DetailRow label="Dose" value={selected.dose} />
-                  </Stack>
-
-                  {selected.note && (
-                    <Paper bg="var(--mantine-color-gray-0)" p="sm" radius="sm">
-                      <Text size="sm">{selected.note}</Text>
-                    </Paper>
-                  )}
+                <Stack gap={8}>
+                  <DetailRow label="Program ID" value={String(selected.id)} />
+                  <DetailRow label="Biofeedback" value={dash(selected.biofeedback)} />
+                  <DetailRow
+                    label="Treatment duration"
+                    value={dash(selected.treatmentDuration)}
+                  />
+                  <DetailRow
+                    label="Pause / packet ratio"
+                    value={String(selected.pausePacketRatio)}
+                  />
+                  <DetailRow label="Packet duration" value={selected.packetDuration} />
+                  <DetailRow label="Dose" value={selected.dose} />
                 </Stack>
-              )}
-            </Paper>
-          </Grid.Col>
-        </Grid>
-      )}
+
+                {selected.note && (
+                  <Paper bg="var(--mantine-color-gray-0)" p="sm" radius="sm">
+                    <Text size="sm">{selected.note}</Text>
+                  </Paper>
+                )}
+              </Stack>
+            )}
+          </Paper>
+        </Grid.Col>
+      </Grid>
 
       <Text c="dimmed" size="xs">
         Programs are fixed reference data and cannot be changed.

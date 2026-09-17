@@ -59,7 +59,7 @@ export const registrationSchema = z
     password: passwordSchema,
     confirmPassword: z.string(),
 
-    state: nameField('State'),
+    state: z.string().trim().min(1, 'State is required'),
     city: nameField('City'),
 
     // Addresses contain house numbers and postcodes, so no letter pattern.

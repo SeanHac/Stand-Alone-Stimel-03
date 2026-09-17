@@ -28,32 +28,39 @@ import {
   PATIENT_STATUSES,
   SENSORY_STATUS
 } from '@shared/clinical'
+import { toMessage } from '@shared/errors'
+import { useData } from '../data/DataContext'
+import { InfoIcon } from './icons'
 
 /**
  * Add and edit patient. Design document section 6.7.
  *
  * The same form serves both: the details view arrives pre-filled and adds a
  * delete action. Every field is optional.
+ *
+ * Writes go through the store, which updates the in-memory records on
+ * success — so the list behind this modal refreshes without re-reading the
+ * database.
  */
 
 interface Props {
   opened: boolean
   patient: PatientRecord | null
   onClose: () => void
-  onSaved: () => void
 }
 
-const scaleOptions = (options: { value: number; label: string }[]): { value: string; label: string }[] =>
+const scaleOptions = (
+  options: { value: number; label: string }[]
+): { value: string; label: string }[] =>
   options.map((o) => ({ value: String(o.value), label: `${o.value} – ${o.label}` }))
-
-
 
 export default function PatientFormModal({
   opened,
   patient,
-  onClose,
-  onSaved
+  onClose
 }: Props): React.JSX.Element {
+  const { createPatient, updatePatient, deletePatient } = useData()
+
   const [values, setValues] = useState<PatientInput>(EMPTY_PATIENT)
   const [dirty, setDirty] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -107,18 +114,17 @@ export default function PatientFormModal({
     setBusy(true)
     try {
       if (isEdit) {
-        await window.api.patients.update(patient.id, values)
+        await updatePatient(patient.id, values)
       } else {
-        await window.api.patients.create(values)
+        await createPatient(values)
       }
       notifications.show({
         color: 'green',
         message: isEdit ? 'Patient updated' : 'Patient added'
       })
-      onSaved()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save the patient')
+      setError(toMessage(err, 'Could not save the patient'))
     } finally {
       setBusy(false)
     }
@@ -127,13 +133,12 @@ export default function PatientFormModal({
   const handleDelete = async (): Promise<void> => {
     setBusy(true)
     try {
-      await window.api.patients.remove(patient!.id)
+      await deletePatient(patient!.id)
       notifications.show({ color: 'green', message: 'Patient deleted' })
       setConfirmDelete(false)
-      onSaved()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not delete the patient')
+      setError(toMessage(err, 'Could not delete the patient'))
     } finally {
       setBusy(false)
     }
@@ -148,6 +153,7 @@ export default function PatientFormModal({
         onClose={handleClose}
         title={isEdit ? patientDisplayName(values) : 'Add new patient'}
         size="lg"
+        classNames={{ content: 'form-modal' }}
       >
         <Stack gap="md">
           {error && (
@@ -155,6 +161,8 @@ export default function PatientFormModal({
               {error}
             </Alert>
           )}
+
+          <Text className="form-section">Personal Information</Text>
 
           <SimpleGrid cols={2} spacing="sm">
             <TextInput
@@ -211,6 +219,8 @@ export default function PatientFormModal({
             value={values.address ?? ''}
             onChange={(e) => set('address', e.currentTarget.value || null)}
           />
+
+          <Text className="form-section">Clinical Information</Text>
 
           <TextInput
             label="Clinical diagnosis"
@@ -272,6 +282,13 @@ export default function PatientFormModal({
             allowDeselect={false}
             onChange={(v) => set('status', (v ?? 'Active') as PatientInput['status'])}
           />
+
+          <Group gap={8} wrap="nowrap" c="dimmed" mt="xs">
+            <InfoIcon />
+            <Text size="xs" c="dimmed">
+              All fields are optional. Age is calculated automatically from date of birth.
+            </Text>
+          </Group>
 
           <Group justify="space-between" mt="sm">
             {isEdit ? (

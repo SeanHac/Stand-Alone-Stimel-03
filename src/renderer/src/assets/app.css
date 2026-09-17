@@ -5,7 +5,7 @@
  * accident — an unlayered rule beats every layered one, which is how the
  * modal ended up unstyled.
  */
-/* @layer mantine, app; */
+@layer mantine, app;
 @layer app {
   html,
   body,
@@ -125,4 +125,208 @@
     color: var(--mantine-color-brand-6);
     transform: translateX(2px);
   }
+}
+
+
+.app-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--mantine-color-gray-2);
+}
+
+.app-header__logo {
+  display: block;
+  height: 44px;
+  width: auto;
+  object-fit: contain;
+}
+
+.app-header__divider {
+  width: 1px;
+  height: 34px;
+  background-color: var(--mantine-color-gray-3);
+}
+
+.app-header__product {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--mantine-color-brand-9);
+  line-height: 1.2;
+}
+
+.app-header__tagline {
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mantine-color-brand-5);
+  line-height: 1.2;
+}
+
+/* ---- Sidebar ---------------------------------------------------------- */
+
+.app-nav {
+  border-right: 1px solid var(--mantine-color-gray-2);
+  background-color: #f7fafd;
+
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 300% auto;
+}
+
+.app-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* background-color: rgba(247, 250, 253, 0.55); */
+  pointer-events: none;
+}
+
+.app-nav__item {
+  display: block;
+  padding: 9px 12px;
+  border-radius: var(--mantine-radius-md);
+  color: var(--mantine-color-brand-9);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.app-nav__item:hover {
+  background-color: rgba(44, 95, 158, 0.08);
+}
+
+.app-nav__item[data-active] {
+  background-color: var(--mantine-color-brand-6);
+  color: #ffffff;
+}
+
+.app-nav__item[data-active]:hover {
+  background-color: var(--mantine-color-brand-7);
+}
+
+.app-nav__item:focus-visible {
+  outline: 2px solid var(--mantine-color-brand-5);
+  outline-offset: 2px;
+}
+
+/* ---- Content ---------------------------------------------------------- */
+
+/* ---- Content ---------------------------------------------------------- */
+
+/* The artwork sits behind every screen in the application, applied to a
+   pseudo-element so its opacity is independent of the page content above
+   it. Pale enough to read as texture rather than competing with the tables
+   and forms that sit on top. */
+.app-main {
+  position: relative;
+  background-color: var(--mantine-color-gray-0);
+}
+
+.app-main::before {
+  content: '';
+  position: fixed;
+  top: 78px;
+  left: 210px;
+  right: 0;
+  bottom: 0;
+  background-image: url('./auth-background.png');
+  background-size: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-main > * {
+  position: relative;
+  z-index: 1;
+}
+/* Subtitle under a page title, as in the mockup. */
+.page-subtitle {
+  font-size: var(--mantine-font-size-sm);
+  color: var(--mantine-color-gray-6);
+}
+
+/* Form modals carry the same artwork as the sidebar, washed out behind a
+   near-opaque layer so field labels stay legible. The image is decorative:
+   at this opacity it reads as texture, not content. */
+.form-modal {
+  position: relative;
+  background-color: #ffffff;
+}
+
+.form-modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('./auth-background.png');
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.form-modal > * {
+  position: relative;
+  z-index: 1;
+}
+
+.form-modal .mantine-InputWrapper-label {
+  color: var(--mantine-color-brand-6);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.form-modal .mantine-Modal-title {
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--mantine-color-brand-9);
+}
+
+/* Section heading with a rule running to the right of the text. */
+.form-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--mantine-color-brand-9);
+  margin-top: 6px;
+}
+
+.form-section::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--mantine-color-gray-3);
+}
+
+/* Tables sit on top of the background artwork, so their rows must be
+   opaque. Striped rows would otherwise alternate between solid white and
+   a tint the artwork shows through, which reads as a rendering fault. */
+.app-main .mantine-Table-table {
+  background-color: #ffffff;
+}
+
+.app-main .mantine-Table-thead {
+  background-color: #ffffff;
+}
+
+.app-main .mantine-Table-tr {
+  background-color: #ffffff;
+}
+
+.app-main .mantine-Table-tr:nth-of-type(even) {
+  background-color: var(--mantine-color-gray-0);
+}
+
+/* Cards and panels likewise. */
+.app-main .mantine-Paper-root {
+  background-color: #ffffff;
 }

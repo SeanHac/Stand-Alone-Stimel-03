@@ -74,3 +74,50 @@ export const AlertIcon = (): React.JSX.Element => (
     <path d="M12 8v4M12 16h.01" />
   </svg>
 )
+
+
+export const PatientsIcon = (): React.JSX.Element => (
+  <svg {...base} width={18} height={18} aria-hidden="true">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+)
+
+export const SessionsIcon = (): React.JSX.Element => (
+  <svg {...base} width={18} height={18} aria-hidden="true">
+    <rect x="3" y="4" width="18" height="17" rx="2" />
+    <path d="M16 2v4M8 2v4M3 10h18" />
+  </svg>
+)
+
+export const ProgramsIcon = (): React.JSX.Element => (
+  <svg {...base} width={18} height={18} aria-hidden="true">
+    <path d="M3 17l5-6 4 4 5-7 4 5" />
+  </svg>
+)
+
+export const ReportsIcon = (): React.JSX.Element => (
+  <svg {...base} width={18} height={18} aria-hidden="true">
+    <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+  </svg>
+)
+
+export const LogOutIcon = (): React.JSX.Element => (
+  <svg {...base} width={18} height={18} aria-hidden="true">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <path d="M16 17l5-5-5-5M21 12H9" />
+  </svg>
+)
+
+export const BackupIcon = (): React.JSX.Element => (
+  <svg {...base} width={18} height={18} aria-hidden="true">
+    <path d="M12 3v10m0 0-3.5-3.5M12 13l3.5-3.5" />
+    <path d="M3 15v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4" />
+  </svg>
+)
+
+export const PlusIcon = (): React.JSX.Element => (
+  <svg {...base} width={17} height={17} aria-hidden="true">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+)

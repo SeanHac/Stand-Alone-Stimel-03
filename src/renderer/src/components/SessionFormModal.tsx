@@ -19,8 +19,8 @@ import {
   type SessionFormValues,
   type SessionRecord
 } from '@shared/session'
-import { programLabel, type Program } from '@shared/program'
-import { patientDisplayName, todayIso, type PatientRecord } from '@shared/patient'
+import { programLabel } from '@shared/program'
+import { patientDisplayName, todayIso } from '@shared/patient'
 import {
   AFFECTED_SIDES,
   BIOFEEDBACK,
@@ -30,6 +30,8 @@ import {
   PATIENT_TOLERANCE,
   PERCEIVED_IMPROVEMENT
 } from '@shared/clinical'
+import { toMessage } from '@shared/errors'
+import { useData } from '../data/DataContext'
 
 /**
  * Add and edit session. Design document section 6.9.
@@ -42,10 +44,7 @@ import {
 interface Props {
   opened: boolean
   session: SessionRecord | null
-  patients: PatientRecord[]
-  programs: Program[]
   onClose: () => void
-  onSaved: () => void
 }
 
 const scaleData = (
@@ -56,11 +55,10 @@ const scaleData = (
 export default function SessionFormModal({
   opened,
   session,
-  patients,
-  programs,
-  onClose,
-  onSaved
+  onClose
 }: Props): React.JSX.Element {
+  const { patients, programs, createSession, updateSession, deleteSession } = useData()
+
   const [values, setValues] = useState<SessionFormValues>(EMPTY_SESSION)
   const [dirty, setDirty] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -121,19 +119,18 @@ export default function SessionFormModal({
       const payload = { ...values, patientId: values.patientId, programId: values.programId }
 
       if (isEdit) {
-        await window.api.sessions.update(session.id, payload)
+        await updateSession(session.id, payload)
       } else {
-        await window.api.sessions.create(payload)
+        await createSession(payload)
       }
 
       notifications.show({
         color: 'green',
         message: isEdit ? 'Session updated' : 'Session added'
       })
-      onSaved()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save the session')
+      setError(toMessage(err, 'Could not save the session'))
     } finally {
       setBusy(false)
     }
@@ -142,13 +139,12 @@ export default function SessionFormModal({
   const handleDelete = async (): Promise<void> => {
     setBusy(true)
     try {
-      await window.api.sessions.remove(session!.id)
+      await deleteSession(session!.id)
       notifications.show({ color: 'green', message: 'Session deleted' })
       setConfirmDelete(false)
-      onSaved()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not delete the session')
+      setError(toMessage(err, 'Could not delete the session'))
     } finally {
       setBusy(false)
     }
@@ -173,6 +169,7 @@ export default function SessionFormModal({
         onClose={handleClose}
         title={isEdit ? `Session ${session.id}` : 'Add new session'}
         size="lg"
+        classNames={{ content: 'form-modal' }}
       >
         <Stack gap="md">
           {error && (
@@ -180,6 +177,8 @@ export default function SessionFormModal({
               {error}
             </Alert>
           )}
+
+          <Text className="form-section">Session Information</Text>
 
           <SimpleGrid cols={2} spacing="sm">
             <Select
@@ -229,9 +228,7 @@ export default function SessionFormModal({
             />
           </SimpleGrid>
 
-          <Text fw={600} size="sm" mt="xs">
-            Clinical feedback
-          </Text>
+          <Text className="form-section">Clinical Feedback</Text>
 
           <SimpleGrid cols={2} spacing="sm">
             <Select

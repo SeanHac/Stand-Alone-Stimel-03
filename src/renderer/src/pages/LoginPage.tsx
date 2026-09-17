@@ -19,6 +19,9 @@ import { AlertIcon, LockIcon, UserIcon } from '../components/icons'
  *
  * No account creation, no user switching, no forgot-password link, no
  * email login. Recovery is reached from the welcome screen instead.
+ *
+ * The failure message is identical whether the username or the password was
+ * wrong, so it cannot be used to discover whether a username exists.
  */
 export default function LoginPage(): React.JSX.Element {
   const navigate = useNavigate()
@@ -35,10 +38,16 @@ export default function LoginPage(): React.JSX.Element {
     setError(null)
     setBusy(true)
     try {
-      await window.api.auth.login(username, password)
+      const result = await window.api.auth.login(username, password)
+
+      if (!result.ok) {
+        setError('Incorrect username or password.')
+        return
+      }
+
       navigate('/patients', { replace: true })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Incorrect username or password.')
+    } catch {
+      setError('Something went wrong. Please try again.')
     } finally {
       setBusy(false)
     }
@@ -53,19 +62,22 @@ export default function LoginPage(): React.JSX.Element {
         <Text className="auth-subheading">Sign in to continue</Text>
       </Stack>
 
+      {notice && (
+        <Alert color="green" variant="light">
+          {notice}
+        </Alert>
+      )}
+
       <Paper className="auth-panel" p="lg">
         <Stack gap="sm">
-          {notice && (
-            <Alert color="green" variant="light" p="xs">
-              <Text size="xs">{notice}</Text>
-            </Alert>
-          )}
-
           <TextInput
             placeholder="Username"
             leftSection={<UserIcon />}
             value={username}
-            onChange={(e) => setUsername(e.currentTarget.value)}
+            onChange={(e) => {
+              setUsername(e.currentTarget.value)
+              setError(null)
+            }}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             size="md"
             autoFocus
@@ -75,7 +87,10 @@ export default function LoginPage(): React.JSX.Element {
             placeholder="Password"
             leftSection={<LockIcon />}
             value={password}
-            onChange={(e) => setPassword(e.currentTarget.value)}
+            onChange={(e) => {
+              setPassword(e.currentTarget.value)
+              setError(null)
+            }}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
             size="md"
           />

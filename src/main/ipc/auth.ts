@@ -6,14 +6,22 @@ import { loginSchema, registrationSchema } from '../validation/auth.schema'
 /**
  * Authentication channels. Handlers stay thin: validate, delegate, return.
  *
- * Errors are converted to plain messages. An exception object crossing the
- * process boundary would carry a stack trace into the renderer, and the
- * renderer has no use for one.
+ * A wrong password or a mistyped recovery key is an expected outcome, not a
+ * fault. Those return a result object rather than throwing, because an
+ * exception crossing the IPC boundary writes a stack trace to the
+ * main-process console every time — which buries genuine errors under
+ * ordinary user mistakes.
+ *
+ * Real faults, such as an unreadable vault, still throw.
  */
 
-function fail(error: unknown): never {
-  const message = error instanceof Error ? error.message : 'Something went wrong'
-  throw new Error(message)
+export interface Result {
+  ok: boolean
+  message?: string
+}
+
+function failure(error: unknown, fallback: string): Result {
+  return { ok: false, message: error instanceof Error ? error.message : fallback }
 }
 
 export function registerAuthHandlers(): void {
@@ -22,9 +30,12 @@ export function registerAuthHandlers(): void {
   ipcMain.handle('auth:createUser', (_event, input: unknown) => {
     try {
       const data = registrationSchema.parse(input)
-      return authService.createUser(data)
+      const { recoveryKey } = authService.createUser(data)
+      return { ok: true as const, recoveryKey }
     } catch (error) {
-      fail(error)
+      // Registration failures are validation problems the form should have
+      // caught, so they are reported rather than thrown.
+      return failure(error, 'Could not create the account')
     }
   })
 
@@ -32,15 +43,15 @@ export function registerAuthHandlers(): void {
     try {
       const { username, password } = loginSchema.parse(input)
       authService.login(username, password)
-      return { ok: true }
+      return { ok: true as const }
     } catch (error) {
-      fail(error)
+      return failure(error, 'Incorrect username or password')
     }
   })
 
   ipcMain.handle('auth:logout', () => {
     authService.logout()
-    return { ok: true }
+    return { ok: true as const }
   })
 
   ipcMain.handle('auth:sessionStatus', () => getStatus())
@@ -48,9 +59,9 @@ export function registerAuthHandlers(): void {
   ipcMain.handle('auth:resetPassword', (_event, recoveryKey: string, newPassword: string) => {
     try {
       authService.resetPasswordWithRecoveryKey(recoveryKey, newPassword)
-      return { ok: true }
+      return { ok: true as const }
     } catch (error) {
-      fail(error)
+      return failure(error, 'That recovery key is not valid')
     }
   })
 
