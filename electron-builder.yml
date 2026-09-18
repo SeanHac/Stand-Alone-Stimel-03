@@ -1,7 +1,9 @@
 appId: com.motioninformatics.stimel03
 productName: Stimel-03
+
 directories:
   buildResources: build
+
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -9,19 +11,29 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+
+# Native modules cannot be loaded from inside the ASAR archive.
 asarUnpack:
   - resources/**
   - '**/node_modules/better-sqlite3/**'
+
+# Migration files must ship with the application, or a fresh install starts
+# with no tables.
 extraResources:
   - from: drizzle
     to: drizzle
+
 win:
   executableName: stimel-03
+
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  # ${arch} is required: without it both builds write to the same filename
+  # and the second silently overwrites the first.
+  artifactName: ${name}-${version}-${arch}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
+
 mac:
   category: public.app-category.medical
   entitlementsInherit: build/entitlements.mac.plist
@@ -31,6 +43,12 @@ mac:
       arch:
         - arm64
         - x64
+
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  # ${arch} is what stops the x64 build overwriting the arm64 one. Without
+  # it you get a single dmg whose architecture depends on build order, and
+  # installing the Intel build on an Apple Silicon Mac means every
+  # instruction runs through Rosetta translation.
+  artifactName: ${name}-${version}-${arch}.${ext}
+
 npmRebuild: false
