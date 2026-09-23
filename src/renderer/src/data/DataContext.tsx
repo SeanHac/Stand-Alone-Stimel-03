@@ -8,8 +8,8 @@ import {
   type ReactNode
 } from 'react'
 import { Center, Loader, Stack, Text, Alert } from '@mantine/core'
-import type { PatientRecord } from '@shared/patient'
-import type { SessionRecord } from '@shared/session'
+import type { PatientInput, PatientRecord } from '@shared/patient'
+import type { SessionInput, SessionRecord } from '@shared/session'
 import type { Program } from '@shared/program'
 import { toMessage } from '@shared/errors'
 
@@ -38,12 +38,12 @@ interface DataState {
   /** Re-reads everything. Rarely needed; mutations keep the store current. */
   reloadAll: () => Promise<void>
 
-  createPatient: (input: unknown) => Promise<PatientRecord>
-  updatePatient: (id: number, input: unknown) => Promise<PatientRecord>
+  createPatient: (input: PatientInput) => Promise<PatientRecord>
+  updatePatient: (id: number, input: PatientInput) => Promise<PatientRecord>
   deletePatient: (id: number) => Promise<void>
 
-  createSession: (input: unknown) => Promise<SessionRecord>
-  updateSession: (id: number, input: unknown) => Promise<SessionRecord>
+  createSession: (input: SessionInput) => Promise<SessionRecord>
+  updateSession: (id: number, input: SessionInput) => Promise<SessionRecord>
   deleteSession: (id: number) => Promise<void>
 }
 
@@ -93,14 +93,14 @@ export function DataProvider({ children }: { children: ReactNode }): React.JSX.E
 
   // ---- Patients ---------------------------------------------------------
 
-  const createPatient = useCallback(async (input: unknown): Promise<PatientRecord> => {
+    const createPatient = useCallback(async (input: PatientInput): Promise<PatientRecord> => {
     const created = await window.api.patients.create(input)
     setPatients((current) => [created, ...current])
     return created
   }, [])
 
   const updatePatient = useCallback(
-    async (id: number, input: unknown): Promise<PatientRecord> => {
+    async (id: number, input: PatientInput): Promise<PatientRecord> => {
       const updated = await window.api.patients.update(id, input)
       setPatients((current) => current.map((p) => (p.id === id ? updated : p)))
 
@@ -129,14 +129,14 @@ export function DataProvider({ children }: { children: ReactNode }): React.JSX.E
 
   // ---- Sessions ---------------------------------------------------------
 
-  const createSession = useCallback(async (input: unknown): Promise<SessionRecord> => {
+    const createSession = useCallback(async (input: SessionInput): Promise<SessionRecord> => {
     const created = await window.api.sessions.create(input)
     setSessions((current) => [created, ...current])
     return created
   }, [])
 
   const updateSession = useCallback(
-    async (id: number, input: unknown): Promise<SessionRecord> => {
+    async (id: number, input: SessionInput): Promise<SessionRecord> => {
       const updated = await window.api.sessions.update(id, input)
       setSessions((current) => current.map((s) => (s.id === id ? updated : s)))
       return updated

@@ -1,4 +1,3 @@
-import { sql } from 'drizzle-orm'
 import type { BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
 import { programs } from './schema'
 import type * as schema from './schema'

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Grid, Group, Paper, Stack, Table, Text, Title } from '@mantine/core'
+import { Box, Flex, Group, Paper, Stack, Table, Text, Title } from '@mantine/core'
 import type { Program } from '@shared/program'
 import { useData } from '../data/DataContext'
 
@@ -39,8 +39,8 @@ export default function ProgramsPage(): React.JSX.Element {
         </Text>
       </Stack>
 
-      <Grid gutter="md">
-        <Grid.Col span={{ base: 12, md: 8 }}>
+      <Flex gap="md" align="flex-start" direction={{ base: 'column', md: 'row' }}>
+        <Box w="100%" style={{ flex: 2, minWidth: 0 }}>
           <Paper withBorder>
             <Table highlightOnHover>
               <Table.Thead>
@@ -76,9 +76,9 @@ export default function ProgramsPage(): React.JSX.Element {
               </Table.Tbody>
             </Table>
           </Paper>
-        </Grid.Col>
+        </Box>
 
-        <Grid.Col span={{ base: 12, md: 4 }}>
+        <Box w="100%" style={{ flex: 1, minWidth: 260 }}>
           <Paper withBorder p="md" h="100%">
             {selected === null ? (
               <Text c="dimmed" size="sm" ta="center" py="xl">
@@ -116,8 +116,8 @@ export default function ProgramsPage(): React.JSX.Element {
               </Stack>
             )}
           </Paper>
-        </Grid.Col>
-      </Grid>
+        </Box>
+      </Flex>
 
       <Text c="dimmed" size="xs">
         Programs are fixed reference data and cannot be changed.

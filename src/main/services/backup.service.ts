@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import { createHash } from 'node:crypto'
 import { app } from 'electron'
-import { closeDatabase, getDatabase, getDbPath } from '../db'
+import { closeDatabase, getConnection, getDbPath } from '../db'
 import { getVaultPath, vaultExists } from '../auth/vault'
 import { endSession } from '../auth/session'
 
@@ -53,11 +53,9 @@ function sha256(buffer: Buffer): string {
 export async function createBackup(targetPath: string): Promise<void> {
   if (!vaultExists()) throw new Error('There is no account on this computer to back up')
 
-  const db = getDatabase()
-
   // TRUNCATE waits for readers to finish, writes everything into the main
   // file, and empties the log. After this the database file is complete.
-  db.$client.pragma('wal_checkpoint(TRUNCATE)')
+  getConnection().pragma('wal_checkpoint(TRUNCATE)')
 
   const dbBytes = await fsp.readFile(getDbPath())
   const authBytes = await fsp.readFile(getVaultPath())

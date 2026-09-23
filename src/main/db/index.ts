@@ -67,3 +67,8 @@ export function getDatabase(): BetterSQLite3Database<typeof schema> {
   if (!database) throw new Error('Database is not open')
   return database
 }
+
+export function getConnection(): Database.Database {
+  if (!connection) throw new Error('Database is not open')
+  return connection
+}
