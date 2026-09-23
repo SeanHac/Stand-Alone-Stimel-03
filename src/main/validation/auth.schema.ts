@@ -59,8 +59,10 @@ export const registrationSchema = z
     password: passwordSchema,
     confirmPassword: z.string(),
 
-    state: z.string().trim().min(1, 'State is required'),
-    city: nameField('City'),
+    // Place names are free text. Country and city vary far more than a
+    // letters-only pattern allows.
+    country: z.string().trim().min(1, 'Country is required'),
+    city: z.string().trim().min(1, 'City is required'),
 
     // Addresses contain house numbers and postcodes, so no letter pattern.
     fullAddress: z.string().trim().min(1, 'Full address is required'),

@@ -17,7 +17,7 @@ export interface RegistrationInput {
   email: string
   password: string
   confirmPassword: string
-  state: string
+  country: string
   city: string
   fullAddress: string
   disclaimerAccepted: boolean
@@ -42,6 +42,19 @@ export interface SessionStatus {
   warning: boolean
 }
 
+/** Formats remaining session time for the warning banner. */
+export function formatRemaining(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}:${String(seconds).padStart(2, '0')}`
+}
+
+/**
+ * Letters, spaces, apostrophes and hyphens. \p{L} covers every alphabet, so
+ * names such as O'Brien, Jean-Luc, María and Müller are accepted while
+ * digits and symbols are not.
+ */
 const NAME_PATTERN = /^[\p{L}][\p{L}\s'’-]*$/u
 
 export function nameProblem(value: string, label: string): string | null {
@@ -59,15 +72,6 @@ export function usernameProblem(value: string): string | null {
     return 'Username may only contain letters, numbers, dots, underscores and hyphens'
   }
   return null
-}
-
-
-/** Formats remaining session time for the warning banner. */
-export function formatRemaining(ms: number): string {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000))
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
 /**
@@ -105,8 +109,8 @@ export function validateRegistration(values: RegistrationInput): Record<string, 
     errors.medicalLicenseNumber = 'Medical license number is required'
   }
 
-  if (!values.state.trim()) {
-    errors.state = 'State is required'
+  if (!values.country.trim()) {
+    errors.country = 'Country is required'
   }
 
   if (!values.city.trim()) {

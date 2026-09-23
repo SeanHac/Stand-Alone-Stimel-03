@@ -75,7 +75,7 @@ export function createUser(input: RegistrationInput): CreateUserResult {
       medicalLicenseNumber: data.medicalLicenseNumber,
       username: data.username,
       email: data.email,
-      state: data.state,
+      country: data.country,
       city: data.city,
       fullAddress: data.fullAddress,
       disclaimerAcceptedAt: now,

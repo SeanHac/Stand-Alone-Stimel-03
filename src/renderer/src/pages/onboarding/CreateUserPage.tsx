@@ -32,7 +32,7 @@ const EMPTY: RegistrationInput = {
   email: '',
   password: '',
   confirmPassword: '',
-  state: '',
+  country: '',
   city: '',
   fullAddress: '',
   disclaimerAccepted: false
@@ -153,10 +153,10 @@ export default function CreateUserPage(): React.JSX.Element {
 
       <SimpleGrid cols={2} spacing="sm">
         <TextInput
-          label="State"
-          value={values.state}
-          error={errors.state}
-          onChange={(e) => set('state', e.currentTarget.value)}
+          label="Country"
+          value={values.country}
+          error={errors.country}
+          onChange={(e) => set('country', e.currentTarget.value)}
         />
         <TextInput
           label="City"

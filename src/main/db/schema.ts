@@ -28,7 +28,7 @@ export const users = sqliteTable(
     medicalLicenseNumber: text('medical_license_number').notNull(),
     username: text('username').notNull(),
     email: text('email').notNull(),
-    state: text('state').notNull(),
+    country: text('country').notNull(),
     city: text('city').notNull(),
     fullAddress: text('full_address').notNull(),
 

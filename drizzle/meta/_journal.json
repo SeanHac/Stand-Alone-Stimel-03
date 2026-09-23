@@ -8,6 +8,13 @@
       "when": 1788786844476,
       "tag": "0000_windy_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1790102208979,
+      "tag": "0001_furry_sebastian_shaw",
+      "breakpoints": true
     }
   ]
 }
